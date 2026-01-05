@@ -1,0 +1,25 @@
+[package]
+authors = ["Simon Johnston <johnstonskj@gmail.com>"]
+name = "zsh-plugin-cli"
+version = "0.1.0"
+description = "A command-line tool to generate new Zsh plugins."
+documentation = "https://docs.rs/zsh-plugin-cli/"
+repository = "https://github.com/johnstonskj/rust-zsh-plugin-cli.git"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+edition = "2024"
+publish = true
+
+[dependencies]
+clap = { version = "4.5", features = ["derive", "env", "cargo", "wrap_help"] }
+clap-verbosity-flag = { version = "3.0", default-features = false, features = ["tracing"] }
+clap_complete = "4.5"
+tera = "1.20"
+flat_error = "0.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = [ "ansi", "env-filter" ] }
+
+
+[[bin]]
+name = "zsh-plugin"
+path = "src/main.rs"

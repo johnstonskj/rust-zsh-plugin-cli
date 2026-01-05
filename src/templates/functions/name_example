@@ -1,0 +1,5 @@
+# -*- mode: sh; eval: (sh-set-shell "zsh") -*-
+
+builtin emulate -L zsh
+
+printf "An example function in {{plugin_name}}, var: {{ _shv_start }}{{ plugin_var }}_EXAMPLE{{ _shv_end }}"
