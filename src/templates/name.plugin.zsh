@@ -39,6 +39,9 @@ ${{ plugin_var }}[_ALIASES]=""
 {%- endif %}
 ${{ plugin_var }}[_FUNCTIONS]=""
 
+# Save current state for any global environment variables that may be modified
+# by the plugin here.
+
 ############################################################################
 # Internal Support Functions
 ############################################################################
@@ -185,7 +188,7 @@ _{{ plugin_name }}_remember_fn {{ plugin_name }}_example
 # Plugin-defined Aliases
 ############################################################################
 
-_{{ plugin_name }}_define_alias my_example '{{ plugin_name }}_example'
+.{{ plugin_name }}_define_alias my_example '{{ plugin_name }}_example'
 {%- endif %}
 
 ############################################################################
