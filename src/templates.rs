@@ -1,4 +1,5 @@
 use std::{fs::{create_dir_all, write}, path::{Path, PathBuf}, process::ExitCode};
+use git2::Repository;
 use tera::{Context, Tera};
 use tracing::{error, trace};
 use crate::{cli::InitCommand, error::Error};
@@ -7,10 +8,10 @@ use crate::{cli::InitCommand, error::Error};
 // Public Functions
 // ------------------------------------------------------------------------------------------------
 
+const V_GITHUB_USER: &str = "github_user";
 const V_PLUGIN_DISPLAY_NAME: &str = "plugin_display_name";
 const V_PLUGIN_NAME: &str = "plugin_name";
 const V_PLUGIN_VAR: &str = "plugin_var";
-const V_GITHUB_USER: &str = "github_user";
 const V_SHORT_DESCRIPTION: &str = "short_description";
 
 const O_INCLUDE_ALIASES: &str = "include_aliases";
@@ -20,16 +21,26 @@ const O_INCLUDE_FUNCTIONS_DIR: &str = "include_functions_dir";
 const O_INCLUDE_GITHUB_DIR: &str = "include_github_dir";
 const O_INCLUDE_SHELL_CHECK: &str = "include_shell_check";
 const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
+const O_INCLUDE_GIT_INIT: &str = "include_git_init";
 
 const P_BIN_DIR: &str = "bin";
-const P_SHELL_YML: &str = "shell.yml";
-const P_GIHUB_DIR: &str = ".github";
-const P_WORKFLOWS_DIR: &str = "workflows";
-const P_FUNCTIONS_DIR: &str = "functions";
-const P_DOT_KEEP: &str = ".keep";
 const P_DOT_GITIGNORE: &str = ".gitignore";
+const P_DOT_KEEP: &str = ".keep";
+const P_FUNCTIONS_DIR: &str = "functions";
+const P_GIHUB_DIR: &str = ".github";
 const P_MAKEFILE: &str = "Makefile";
 const P_README: &str = "README.md";
+const P_SHELL_YML: &str = "shell.yml";
+const P_WORKFLOWS_DIR: &str = "workflows";
+
+macro_rules! report_progress {
+    () => {
+        print!(".");
+    };
+    (done) => {
+        println!(" Done");
+    };
+}
 
 pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Error> {
     let mut tera = Tera::default();
@@ -38,10 +49,20 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
     let target_root = PathBuf::from(&format!("zsh-{plugin_name}-plugin"));
     make_directory(&target_root, force)?;
 
+    if ctx.get(O_INCLUDE_GIT_INIT).unwrap().as_bool().unwrap() {
+        make_repository(&target_root, force)?;
+    }
+
     if ctx.get(O_INCLUDE_BIN_DIR).unwrap().as_bool().unwrap() {
         let bindir = target_root.join(P_BIN_DIR);
         make_directory(&bindir, force)?;
-        write(bindir.join(P_DOT_KEEP), "")?;
+        render_template(
+            &mut tera,
+            &ctx,
+            T_BIN_DIR_KEEP,
+            &bindir.join(P_DOT_KEEP),
+            force,
+        )?;
     }
 
     let github = target_root.join(P_GIHUB_DIR);
@@ -103,6 +124,8 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         force,
     )?;
     
+    report_progress!(done);
+
     Ok(ExitCode::SUCCESS)
 }
 
@@ -110,6 +133,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
 // Template Strings
 // ------------------------------------------------------------------------------------------------
 
+const T_BIN_DIR_KEEP: &str = include_str!("templates/bin/.keep");
 const T_FUNCTIONS_EXAMPLE: &str = include_str!("templates/functions/name_example");
 const T_GIT_IGNORE: &str = include_str!("templates/.gitignore");
 const T_GITHUB_WORFLOW_SHELL: &str = include_str!("templates/.github/workflows/shell.yml");
@@ -122,30 +146,55 @@ const T_README: &str = include_str!("templates/README.md");
 // Private Functions
 // ------------------------------------------------------------------------------------------------
 
+fn make_repository(path: &Path, force: bool) -> Result<(), Error> {
+    trace!("make_repository('{path:?}', force: {force})");
+
+    let repo_dir = path.join(".git");
+    if !repo_dir.exists() || (repo_dir.is_dir() && force) {
+        if let Err(e) = Repository::init(path) {
+            error!("Error initializing new Git repository, error: {e}");
+            Err(e.into())
+        } else {
+            report_progress!();
+            Ok(())
+        }
+    } else {
+        error!("Target Git repository path {repo_dir:?} already exists");
+        Err(Error::TargetExistsError { path: repo_dir.to_path_buf() } )
+    }
+}
 
 fn make_directory(path: &Path, force: bool) -> Result<(), Error> {
     trace!("make_directory('{path:?}', force: {force})");
 
-    // TODO: enforce force
-
-    create_dir_all(path)?;
-    Ok(())
+    if !path.exists() || (path.is_dir() && force) {
+        create_dir_all(path)?;
+        report_progress!();
+        Ok(())
+    } else {
+        error!("Target directory {path:?} already exists");
+        Err(Error::TargetExistsError { path: path.to_path_buf() } )
+    }
 }
 
 fn render_template(tera: &mut Tera, ctx: &Context, template: &str, file_path: &Path, force: bool) -> Result<(), Error> {
     trace!("render_template(tera, ctx, template, to_file: '{file_path:?}', force: {force})");
 
-    // TODO: enforce force
-
-    match tera.render_str(&template, &ctx) {
-        Ok(content) => {
-            write(file_path, content)?;
-            Ok(())
+    if !file_path.exists() || (file_path.is_file() && force) {
+        match tera.render_str(&template, &ctx) {
+            Ok(content) => {
+                write(file_path, content)?;
+                report_progress!();
+                Ok(())
+            }
+            Err(e) => {
+                error!("failure rendering template to file, error: {e}");
+                Err(e.into())
+            }
         }
-        Err(e) => {
-            error!("failure rendering template to file, error: {e}");
-            Err(e.into())
-        }
+    } else {
+        error!("Target file {file_path:?} already exists");
+        Err(Error::TargetExistsError { path: file_path.to_path_buf() } )
     }
 }
 
@@ -162,6 +211,7 @@ impl From<InitCommand> for Context {
         ctx.insert(O_INCLUDE_BIN_DIR, &cmd.add_bin_dir());
         ctx.insert(O_INCLUDE_FUNCTIONS_DIR, &!cmd.no_functions_dir());
         ctx.insert(O_INCLUDE_GITHUB_DIR, &!cmd.no_github_dir());
+        ctx.insert(O_INCLUDE_GIT_INIT, &!cmd.no_git_init());
         ctx.insert(O_INCLUDE_SHELL_CHECK, &!cmd.no_shell_check());
         ctx.insert(O_INCLUDE_SHELL_SPEC, &!cmd.no_shell_spec());
         if let Some(description) = cmd.description() {

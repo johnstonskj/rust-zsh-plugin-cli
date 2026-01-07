@@ -12,6 +12,21 @@ on:
 
 jobs:
 
+{%- if include_shell_check %}
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: --check-sourced --shell=bash
+{% endif %}
+
+{%- if include_shell_check %}
   test:
     name: Test
 
@@ -56,7 +71,6 @@ jobs:
 
     - name: Run tests
       run: shellspec --shell={% raw %}${{ matrix.shell }}{% endraw %} --format documentation --output junit
-
 
     - name: Publish Test Report with Insights
       uses: ctrf-io/github-test-reporter@v1
@@ -114,3 +128,4 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         GITHUB_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+{% endif %}

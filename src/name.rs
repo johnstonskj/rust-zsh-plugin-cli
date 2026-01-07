@@ -59,3 +59,21 @@ impl FromStr for Name {
         }
     }
 }
+
+// ------------------------------------------------------------------------------------------------
+// Implementations ❱ NameErrorKind
+// ------------------------------------------------------------------------------------------------
+
+impl Display for NameErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NameErrorKind::Empty => write!(f, "Name cannot be empty"),
+            NameErrorKind::InvalidInitialChar => {
+                write!(f, "Initial character must be an ASCII alphabetic character")
+            }
+            NameErrorKind::InvalidChar => {
+                write!(f, "Characters must be ASCII alphanumeric, '-', or '_'")
+            }
+        }
+    }
+}

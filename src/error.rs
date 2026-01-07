@@ -7,12 +7,13 @@ use flat_error::FlatError;
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
-    io::{Error as IoError, ErrorKind as IoErrorKind},
+    io::{Error as IoError, ErrorKind as IoErrorKind}, path::PathBuf,
 };
 use tracing::subscriber::SetGlobalDefaultError;
 use tracing_subscriber::filter::ParseError;
 use crate::name::NameErrorKind;
 use tera::Error as TemplateError;
+use git2::Error as GitError;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types
@@ -37,6 +38,12 @@ pub enum Error {
     },
     TemplateError {
         source: FlatError,
+    },
+    GitInitError {
+        source: FlatError,
+    },
+    TargetExistsError {
+        path: PathBuf,
     },
     MultipleErrors {
         sources: Vec<Error>,
@@ -69,6 +76,12 @@ impl Display for Error {
                 Self::TemplateError { source } => format!(
                     "An error occurred parsing or rendering a template; source:{source}"
                 ),
+                Self::GitInitError { source } => format!(
+                    "An error occurred initializing the new Git repository; source: {source}"
+                ),
+                Self::TargetExistsError { path } => format!(
+                    "An error occurred generating a template: target path {path:?} already exists"
+                ),
                 Self::MultipleErrors { sources } => {
                     format!(
                         "Multiple errors occurred:\n{}",
@@ -93,6 +106,7 @@ impl StdError for Error {
             Self::IoError { source } => Some(source),
             Self::EnvFilterError { source } => Some(source),
             Self::SetGlobalError { source } => Some(source),
+            Self::GitInitError { source } => Some(source),
             _ => None,
         }
     }
@@ -105,14 +119,6 @@ impl StdError for Error {
 impl From<IoError> for Error {
     fn from(source: IoError) -> Self {
         Self::IoError {
-            source: FlatError::from_any(&source),
-        }
-    }
-}
-
-impl From<TemplateError> for Error {
-    fn from(source: TemplateError) -> Self {
-        Self::TemplateError {
             source: FlatError::from_any(&source),
         }
     }
@@ -149,6 +155,21 @@ impl From<NameErrorKind> for Error {
     }
 }
 
+impl From<TemplateError> for Error {
+    fn from(source: TemplateError) -> Self {
+        Self::TemplateError {
+            source: FlatError::from_any(&source),
+        }
+    }
+}
+
+impl From<GitError> for Error {
+    fn from(source: GitError) -> Self {
+        Self::GitInitError {
+            source: FlatError::from_any(&source),
+        }
+    }
+}
 
 impl From<Vec<Error>> for Error {
     fn from(sources: Vec<Error>) -> Self {

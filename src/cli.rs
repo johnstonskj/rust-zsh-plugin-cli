@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::{process::ExitCode};
 use tracing::{error, level_filters::LevelFilter};
 use tracing_subscriber::filter::EnvFilter;
@@ -77,26 +77,29 @@ pub(crate) struct InitCommand {
     #[arg(long, short = 'f', action)]
     force: bool,
 
+    #[arg(long, short = 't')]
+    template: Option<Template>,
+
     /// Add a 'bin' sub-directory for plugin-specific binaries/scripts.
-    #[arg(long, short = 'a', action)]
+    #[arg(long, short = 'a', action, conflicts_with = "template")]
     add_bin_dir: bool,
 
     /// Add a Bash wrapper file to call the plugin from Bash scripts.
-    #[arg(long, short = 'w', action)]
+    #[arg(long, short = 'w', action, conflicts_with = "template")]
     add_bash_wrapper: bool,
 
     /// Do not include support for tracking aliases defined by the plugin.
-    #[arg(long, short = 'A', action)]
+    #[arg(long, short = 'A', action, conflicts_with = "template")]
     no_aliases: bool,
 
     /// Do not include support for linting using shellcheck.
     /// 
     /// Add linting steps to the Makefile and shell.yml (Github Action) files.
-    #[arg(long, short = 'C', action)]
+    #[arg(long, short = 'C', action, conflicts_with = "template")]
     no_shell_check: bool,
 
     /// Do not include a 'functions' sub-directory and example file.
-    #[arg(long, short = 'F', action)]
+    #[arg(long, short = 'F', action, conflicts_with = "template")]
     no_functions_dir: bool,
 
     /// Do not initialize Git in the generated plugin.
@@ -104,7 +107,7 @@ pub(crate) struct InitCommand {
     /// By default the created plugin directory is also initialized as a new
     /// Git repository. This option also stops creation a generic .gitignore
     /// file.
-    #[arg(long, short = 'G', action)]
+    #[arg(long, short = 'G', action, conflicts_with = "template")]
     no_git_init: bool,
 
     /// Do not include a '.github' sub-directory.
@@ -113,13 +116,13 @@ pub(crate) struct InitCommand {
     /// with a file shell.yml that defines a Github Actions workflow. Note
     /// that if both no-shell-check and no-shell_test options are set the 
     /// workflow file is not created as it would effectively be a no-op.
-    #[arg(long, short = 'H', action)]
+    #[arg(long, short = 'H', action, conflicts_with = "template")]
     no_github_dir: bool,
 
     /// Do not include support for testing using shellspec.
     /// 
     /// Add testing steps to the Makefile and shell.yml (Github Action) files.
-    #[arg(long, short = 'S', action)]
+    #[arg(long, short = 'S', action, conflicts_with = "template")]
     no_shell_spec: bool,
 
     /// Set the name of the Github user for inclusion in README.md.
@@ -139,6 +142,27 @@ pub(crate) struct InitCommand {
     name: Name,
 }
 
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ValueEnum)]
+pub(crate) enum Template {
+    /// Minimal plugin structure.
+    /// 
+    /// The generated plugin contains no binary or functions directories,
+    /// no GitHub workflows, and no support for aliases, shellcheck or 
+    /// shellspec.
+    Minimal,
+    /// Simple in-line function plugin structure.
+    /// 
+    /// The generated plugin contains support for aliases, shellcheck and
+    /// shellspec, but all functions are defined in-line in the main plugin.
+    /// It does not include the binary or functions directories, or 
+    /// GitHub workflows.
+    Simple,
+    /// Complete plugin structure with all optional components included.
+    Complete,
+}
+
+
 // ------------------------------------------------------------------------------------------------
 // Command Implementations
 // ------------------------------------------------------------------------------------------------
@@ -148,8 +172,7 @@ impl OnceCommand for Cli {
     type Error = Error;
 
     fn execute(self) -> Result<Self::Output, Self::Error> {
-        println!("VERBOSITY::{:?}", &self.verbosity);
-        init_tracing(self.verbosity, None)?;
+        init_tracing(self.verbosity)?;
         self.cmd.clone().execute()
     }
 }
@@ -169,9 +192,43 @@ impl OnceCommand for InitCommand {
     type Output = ExitCode;
     type Error = Error;
 
-    fn execute(self) -> Result<Self::Output, Self::Error> {
+    fn execute(mut self) -> Result<Self::Output, Self::Error> {
         let force = self.force();
-        init_new_plugin(self.into(), force)
+        self.normalize();
+        match init_new_plugin(self.into(), force) {
+            Ok(code) => {
+                Ok(code)
+            }
+            Err(Error::GitInitError { source }) => {
+                eprintln!(r#"Initialization failed due to Git repository initialization error.
+├─ Error: {source}
+└─ Help: Ensure that Git is installed and accessible, or use the '--no-git-init' option to skip Git initialization."#);
+                Ok(ExitCode::FAILURE)
+            }
+            Err(Error::InvalidNameError { kind }) => {
+                eprintln!(r#"Initialization failed due to invalid plugin name.
+├─ Error: {kind}
+└─ Help: Plugin names must start with a letter and can only contain letters, digits, hyphens and underscores."#);
+                Ok(ExitCode::FAILURE)
+            }
+            Err(Error::TargetExistsError { path }) => {
+                eprintln!(r#"Initialization failed as the target file or directory already exists.
+├─ Path: {path:?}
+└─ Help: Use the '--force' option to overwrite existing files and directories."#);
+                Ok(ExitCode::FAILURE)
+            }
+            Err(Error::TemplateError { source }) => {
+                eprintln!(r#"Initialization failed due to a template rendering error.
+├─ Error: {source}
+└─ Help: Ensure that the template files are correct and try again."#);
+                Ok(ExitCode::FAILURE)
+            }
+            Err(e) => {
+                eprintln!(r#"An error initializing the new plugin
+└─ Error: {e}"#);
+                Ok(ExitCode::FAILURE)
+            }
+        }
     }
 }
 
@@ -187,6 +244,9 @@ impl InitCommand {
     }
     pub(crate) fn add_bin_dir(&self) -> bool {
         self.add_bin_dir
+    }
+    pub(crate) fn no_git_init(&self) -> bool {
+        self.no_git_init
     }
     pub(crate) fn no_github_dir(&self) -> bool {
         self.no_github_dir
@@ -209,6 +269,37 @@ impl InitCommand {
     pub(crate) fn name(&self) -> &Name {
         &self.name
     }
+    fn normalize(&mut self) {
+        match self.template {
+            Some(Template::Minimal) => {
+                self.add_bin_dir = false;
+                self.add_bash_wrapper = false;
+                self.no_aliases = true;
+                self.no_functions_dir = true;
+                self.no_github_dir = true;
+                self.no_shell_check = true;
+                self.no_shell_spec = true;
+            }
+            Some(Template::Simple) => {
+                self.add_bin_dir = false;
+                self.add_bash_wrapper = false;
+                self.no_aliases = false;
+                self.no_functions_dir = true;
+                self.no_github_dir = true;
+                self.no_shell_check = false;
+                self.no_shell_spec = false;
+            }
+            Some(Template::Complete) | None => { 
+                self.add_bin_dir = true;
+                self.add_bash_wrapper = true;
+                self.no_aliases = false;
+                self.no_functions_dir = false;
+                self.no_github_dir = false;
+                self.no_shell_check = false;
+                self.no_shell_spec = false;
+            }
+        }
+    }
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -217,8 +308,8 @@ impl InitCommand {
 
 fn init_tracing(
     log_level: clap_verbosity_flag::Verbosity,
-    library_root: Option<&str>,
 ) -> Result<(), Error> {
+    let log_level: LevelFilter = log_level.into();
     let filter = EnvFilter::from_default_env().add_directive(
         format!("{}={}", module_path!(), log_level)
             .parse()
@@ -227,22 +318,10 @@ fn init_tracing(
                 Error::from(e)
             })?,
     );
-    let filter = if let Some(library_root) = library_root {
-        filter.add_directive(
-            format!("{library_root}={}", log_level)
-                .parse()
-                .map_err(|e| {
-                    error!("Error parsing trace env-filter expression; source: {e}");
-                    Error::from(e)
-                })?,
-        )
-    } else {
-        filter
-    };
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
-        .with_max_level(LevelFilter::TRACE)
+        .with_max_level(log_level)
         .with_level(true)
         .with_target(true)
         .with_file(true)
