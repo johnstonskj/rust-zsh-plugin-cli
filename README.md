@@ -82,6 +82,20 @@ The resulting plugin contains the following content.
 
 8. A file `README.md` containing only a basic skeleton.
 
+Rather than setting all options manually, three templates are provided with
+pre-defined selection of settings. These are described in the table below.
+
+| Feature / Template  | minimal | simple | complete |
+| ------------------- | ------- | ------ | -------- |
+| `add-bin-dir`       | false   | false  | true     |
+| `add-bash-wrapper`  | false   | false  | true     |
+| `no-aliases`        | true    | false  | false    |
+| `no-functions-dir`  | true    | true   | false    |
+| `no-git-init`       | true    | false  | false    |
+| `no-github-dir`     | true    | true   | false    |
+| `no-shell-check`    | true    | false  | false    |
+| `no-shell-spec`     | true    | false  | false    |
+
 ### Example
 
 Given the following execution:
@@ -99,6 +113,7 @@ A complete plugin, with all possible content, is created as follows:
   │  └─ workflows/           #   no-shell-check AND no-shell-spec
   │     └─ shell.yml
   ├─ bin/                    # when   add-bin-dir
+  │  └─ .gitkeep
   ├─ functions/              # unless no-functions-dir
   │  └─ containers_example
   ├─ .git                    # unless no-git-init

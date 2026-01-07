@@ -25,7 +25,7 @@ const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
 
 const P_BIN_DIR: &str = "bin";
 const P_DOT_GITIGNORE: &str = ".gitignore";
-const P_DOT_KEEP: &str = ".keep";
+const P_DOT_KEEP: &str = ".gitkeep";
 const P_FUNCTIONS_DIR: &str = "functions";
 const P_GIHUB_DIR: &str = ".github";
 const P_MAKEFILE: &str = "Makefile";

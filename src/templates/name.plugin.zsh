@@ -12,14 +12,14 @@
 # Public variables:
 #
 # * `{{ plugin_var }}`; plugin-defined global associative array with the following keys:
-#   * \`_ALIASES\`; a list of all aliases defined by the plugin.
-#   * \`_FUNCTIONS\`; a list of all functions defined by the plugin.
-#   * \`_PLUGIN_DIR\`; the directory the plugin is sourced from.
+#   * `_ALIASES`; a list of all aliases defined by the plugin.
+#   * `_FUNCTIONS`; a list of all functions defined by the plugin.
+#   * `_PLUGIN_DIR`; the directory the plugin is sourced from.
 {% if include_bin_dir -%}
-#   * \`_PLUGIN_BIN_DIR\`; the directory (if present) for plugin specific binaries.
+#   * `_PLUGIN_BIN_DIR`; the directory (if present) for plugin specific binaries.
 {% endif -%}
 {% if include_functions_dir -%}
-#   * \`_PLUGIN_FNS_DIR\`; the directory (if present) for plugin autoload functions.
+#   * `_PLUGIN_FNS_DIR`; the directory (if present) for plugin autoload functions.
 {% endif -%}
 # * `{{ plugin_var }}_EXAMPLE`; if set it does something magical.
 #
