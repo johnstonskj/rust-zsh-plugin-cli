@@ -18,10 +18,10 @@ const O_INCLUDE_ALIASES: &str = "include_aliases";
 const O_INCLUDE_BASH_WRAPPER: &str = "include_bash_wrapper";
 const O_INCLUDE_BIN_DIR: &str = "include_bin_dir";
 const O_INCLUDE_FUNCTIONS_DIR: &str = "include_functions_dir";
+const O_INCLUDE_GIT_INIT: &str = "include_git_init";
 const O_INCLUDE_GITHUB_DIR: &str = "include_github_dir";
 const O_INCLUDE_SHELL_CHECK: &str = "include_shell_check";
 const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
-const O_INCLUDE_GIT_INIT: &str = "include_git_init";
 
 const P_BIN_DIR: &str = "bin";
 const P_DOT_GITIGNORE: &str = ".gitignore";
@@ -43,6 +43,7 @@ macro_rules! report_progress {
 }
 
 pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Error> {
+    trace!("init_new_plugin => ctx: {ctx:?}, force: {force}");
     let mut tera = Tera::default();
     let plugin_name: &str = ctx.get(V_PLUGIN_NAME).unwrap().as_str().unwrap();
 
@@ -51,6 +52,27 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
 
     if ctx.get(O_INCLUDE_GIT_INIT).unwrap().as_bool().unwrap() {
         make_repository(&target_root, force)?;
+        render_template(
+            &mut tera,
+            &ctx,
+            T_GIT_IGNORE,
+            &target_root.join(P_DOT_GITIGNORE),
+            force,
+        )?;
+    }
+
+    if ctx.get(O_INCLUDE_GITHUB_DIR).unwrap().as_bool().unwrap() {
+        let github = target_root.join(P_GIHUB_DIR);
+        make_directory(&github, force)?;
+        let workflows = github.join(P_WORKFLOWS_DIR);
+        make_directory(&workflows, force)?;
+        render_template(
+            &mut tera,
+            &ctx,
+            T_GITHUB_WORFLOW_SHELL,
+            &workflows.join(P_SHELL_YML),
+            force,
+        )?;
     }
 
     if ctx.get(O_INCLUDE_BIN_DIR).unwrap().as_bool().unwrap() {
@@ -65,27 +87,38 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    let github = target_root.join(P_GIHUB_DIR);
-    make_directory(&github, force)?;
-    let workflows = github.join(P_WORKFLOWS_DIR);
-    make_directory(&workflows, force)?;
-    render_template(
-        &mut tera,
-        &ctx,
-        T_GITHUB_WORFLOW_SHELL,
-        &workflows.join(P_SHELL_YML),
-        force,
-    )?;
-
-    let functions = target_root.join(P_FUNCTIONS_DIR);
-    make_directory(&functions, force)?;
-    render_template(
-        &mut tera,
-        &ctx,
-        T_FUNCTIONS_EXAMPLE,
-        &functions.join(format!("{plugin_name}_example")), 
-        force,
-    )?;
+    if ctx.get(O_INCLUDE_FUNCTIONS_DIR).unwrap().as_bool().unwrap() {
+        let functions = target_root.join(P_FUNCTIONS_DIR);
+        make_directory(&functions, force)?;
+        render_template(
+            &mut tera,
+            &ctx,
+            T_FUNCTIONS_EXAMPLE,
+            &functions.join(format!("{plugin_name}_example")), 
+            force,
+        )?;
+    }
+    
+    if ctx.get(O_INCLUDE_SHELL_CHECK).unwrap().as_bool().unwrap() 
+    || ctx.get(O_INCLUDE_SHELL_SPEC).unwrap().as_bool().unwrap() {
+        render_template(
+            &mut tera,
+            &ctx,
+            T_MAKEFILE,
+            &target_root.join(P_MAKEFILE),
+            force,
+        )?;
+    }
+ 
+    if ctx.get(O_INCLUDE_BASH_WRAPPER).unwrap().as_bool().unwrap() {
+        render_template(
+            &mut tera,
+            &ctx,
+            T_PLUGIN_WRAPPER,
+            &target_root.join(format!("{plugin_name}.bash")),
+            force,
+        )?;
+    }
 
     render_template(
         &mut tera,
@@ -94,28 +127,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         &target_root.join(format!("{plugin_name}.plugin.zsh")),
         force,
     )?;
-    render_template(
-        &mut tera,
-        &ctx,
-        T_PLUGIN_WRAPPER,
-        &target_root.join(format!("{plugin_name}.bash")),
-        force,
-    )?;
 
-    render_template(
-        &mut tera,
-        &ctx,
-        T_GIT_IGNORE,
-        &target_root.join(P_DOT_GITIGNORE),
-        force,
-    )?;
-    render_template(
-        &mut tera,
-        &ctx,
-        T_MAKEFILE,
-        &target_root.join(P_MAKEFILE),
-        force,
-    )?;
     render_template(
         &mut tera,
         &ctx,
@@ -123,7 +135,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         &target_root.join(P_README),
         force,
     )?;
-    
+
     report_progress!(done);
 
     Ok(ExitCode::SUCCESS)
@@ -147,7 +159,7 @@ const T_README: &str = include_str!("templates/README.md");
 // ------------------------------------------------------------------------------------------------
 
 fn make_repository(path: &Path, force: bool) -> Result<(), Error> {
-    trace!("make_repository('{path:?}', force: {force})");
+    trace!("make_repository => in path: {path:?}, force: {force}");
 
     let repo_dir = path.join(".git");
     if !repo_dir.exists() || (repo_dir.is_dir() && force) {
@@ -165,7 +177,7 @@ fn make_repository(path: &Path, force: bool) -> Result<(), Error> {
 }
 
 fn make_directory(path: &Path, force: bool) -> Result<(), Error> {
-    trace!("make_directory('{path:?}', force: {force})");
+    trace!("make_directory => path: {path:?}', force: {force}");
 
     if !path.exists() || (path.is_dir() && force) {
         create_dir_all(path)?;
@@ -178,7 +190,7 @@ fn make_directory(path: &Path, force: bool) -> Result<(), Error> {
 }
 
 fn render_template(tera: &mut Tera, ctx: &Context, template: &str, file_path: &Path, force: bool) -> Result<(), Error> {
-    trace!("render_template(tera, ctx, template, to_file: '{file_path:?}', force: {force})");
+    trace!("render_template => to_file: '{file_path:?}', force: {force}");
 
     if !file_path.exists() || (file_path.is_file() && force) {
         match tera.render_str(&template, &ctx) {
@@ -188,7 +200,7 @@ fn render_template(tera: &mut Tera, ctx: &Context, template: &str, file_path: &P
                 Ok(())
             }
             Err(e) => {
-                error!("failure rendering template to file, error: {e}");
+                error!("failure rendering template to file {file_path:?}, error: {e}");
                 Err(e.into())
             }
         }

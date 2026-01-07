@@ -1,14 +1,27 @@
 # -*- mode: sh; eval: (sh-set-shell "zsh") -*-
 #
-# Name: { plugin_display_name }}
+# Plugin Name: {{ plugin_display_name }}
 # Repository: https://github.com/{{ github_user }}/zsh-{{ plugin_name }}-plugin
+#
 {% if short_description -%}
 # Description:
-#     {{ short_description }}
 #
-{% else %}
+#   {{ short_description }}
 #
-{%- endif %}
+{% endif -%}
+# Public variables:
+#
+# * `{{ plugin_var }}`; plugin-defined global associative array with the following keys:
+#   * \`_PLUGIN_DIR\`; the directory the plugin is sourced from.
+{% if include_bin_dir -%}
+#   * \`_PLUGIN_BIN_DIR\`; the directory (if present) for plugin specific binaries.
+{% endif -%}
+{% if include_functions_dir -%}
+#   * \`_PLUGIN_FNS_DIR\`; the directory (if present) for plugin autoload functions.
+{% endif -%}
+#   * \`_FUNCTIONS\`; a list of all functions defined by the plugin.
+# * `{{ plugin_var }}_EXAMPLE`; if set it does something magical.
+#
 
 ############################################################################
 # Standard Setup Behavior
@@ -26,12 +39,6 @@ ${{ plugin_var }}[_ALIASES]=""
 {%- endif %}
 ${{ plugin_var }}[_FUNCTIONS]=""
 
-#
-# Public variables:
-#
-# `{{ plugin_var }}_EXAMPLE`; if set it does something magical.
-#
-
 ############################################################################
 # Internal Support Functions
 ############################################################################
@@ -40,7 +47,10 @@ ${{ plugin_var }}[_FUNCTIONS]=""
 # This function will add to the `{{ plugin_var }}[_FUNCTIONS]` list which is
 # used at unload time to `unfunction` plugin-defined functions.
 #
-_{{ plugin_name }}_remember_fn() {
+# See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
+# See https://wiki.zshell.dev/community/zsh_plugin_standard#the-proposed-function-name-prefixes
+#
+.{{ plugin_name }}_remember_fn() {
     builtin emulate -L zsh
 
     local fn_name="${1}"
@@ -50,10 +60,10 @@ _{{ plugin_name }}_remember_fn() {
         {{ plugin_var }}[_FUNCTIONS]="{{ _shv_start }}{{ plugin_var }}[_FUNCTIONS]{{ _shv_end }},${fn_name}"
     fi
 }
-_{{ plugin_name }}_remember_fn _{{ plugin_name }}_remember_fn
+.{{ plugin_name }}_remember_fn .{{ plugin_name }}_remember_fn
 
 {% if include_aliases -%}
-_{{ plugin_name }}_define_alias() {
+.{{ plugin_name }}_define_alias() {
     local alias_name="${1}"
     local alias_value="${2}"
 
@@ -65,21 +75,17 @@ _{{ plugin_name }}_define_alias() {
         {{ plugin_var }}[_ALIASES]="{{ _shv_start }}{{ plugin_var }}[_ALIASES]{{ _shv_end }},${alias_name}"
     fi
 }
-_{{ plugin_name }}_remember_fn _{{ plugin_name }}_remember_alias
+.{{ plugin_name }}_remember_fn .{{ plugin_name }}_remember_alias
 {%- endif %}
 
+{% if include_bin_dir or include_functions_dir -%}
 #
-# This function does the initializtion of variables in the global variable
+# This function does the initialization of variables in the global variable
 # `{{ plugin_var }}`. It also adds to `path` and `fpath` as necessary.
-# This variable is an associative array with the following private keys:
-#
-# - \`_PLUGIN_DIR\`; the directory the plugin is sourced from.
-# - \`_PLUGIN_BIN_DIR\`; the directory (if present) for plugin specific binaries.
-# - \`_PLUGIN_FNS_DIR\`; the directory (if present) for plugin autoload functions.
-# - \`_FUNCTIONS\`; a list of all functions defined by the plugin.
 #
 {{ plugin_name }}_plugin_init() {
-    emulate -L zsh
+    builtin emulate -L zsh
+    builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
     {% if include_functions_dir -%}
     # See https://wiki.zshell.dev/community/zsh_plugin_standard#functions-directory
@@ -97,7 +103,7 @@ _{{ plugin_name }}_remember_fn _{{ plugin_name }}_remember_alias
         local fn
         for fn in {{ _shv_start }}{{ plugin_var }}[_PLUGIN_FNS_DIR]{{ _shv_end }}/*(.:t); do
             autoload -Uz ${fn}
-            _{{ plugin_name }}_remember_fn ${fn}
+            .{{ plugin_name }}_remember_fn ${fn}
         done
 
     fi
@@ -118,7 +124,8 @@ _{{ plugin_name }}_remember_fn _{{ plugin_name }}_remember_alias
     fi
     {%- endif %}
 }
-_{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
+.{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
+{%- endif %}
 
 ############################################################################
 # Plugin Unload Function
@@ -136,6 +143,7 @@ _{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
         whence -w "${fn}" &> /dev/null && unfunction "${fn}"
     done
     
+    {% if include_aliases %}
     # Remove all remembered aliases.
     local aliases
     IFS=',' read -r -A aliases <<< "{{ _shv_start }}{{ plugin_var }}[_ALIASES]{{ _shv_end }}"
@@ -143,6 +151,7 @@ _{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
     for alias in ${aliases[@]}; do
         unalias "${alias}"
     done
+    {% endif %}
 
     # Remove the global data variable.
     unset {{ plugin_var }}
@@ -152,11 +161,13 @@ _{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
     fpath=("${(@)fpath:#{{ _shv_start }}{{ plugin_var }}[_PLUGIN_FNS_DIR]{{ _shv_end }}}")
     {%- endif -%}
 
+    # Remove/reset any exported environment variables here if necessary.
+
     # Remove this function.
     unfunction {{ plugin_name }}_plugin_unload
 }
 
-{% if not include_functions_dir %}
+{% if not include_functions_dir -%}
 ############################################################################
 # Public Functions
 ############################################################################
@@ -167,7 +178,7 @@ _{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
     printf "An example function in {{plugin_name}}, var: {{ _shv_start }}{{ plugin_var }}_EXAMPLE{{ _shv_end }}"
 }
 _{{ plugin_name }}_remember_fn {{ plugin_name }}_example
-{% endif %}
+{%- endif %}
 
 {% if include_aliases -%}
 ############################################################################
@@ -181,5 +192,7 @@ _{{ plugin_name }}_define_alias my_example '{{ plugin_name }}_example'
 # Initialize Plugin
 ############################################################################
 
+{% if include_bin_dir or include_functions_dir -%}
 {{ plugin_name }}_plugin_init
+{% endif %}
 true

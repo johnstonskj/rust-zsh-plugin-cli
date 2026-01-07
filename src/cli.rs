@@ -148,8 +148,8 @@ pub(crate) enum Template {
     /// Minimal plugin structure.
     /// 
     /// The generated plugin contains no binary or functions directories,
-    /// no GitHub workflows, and no support for aliases, shellcheck or 
-    /// shellspec.
+    /// no Git directory, no GitHub workflows, and no support for aliases, 
+    /// shellcheck or  shellspec.
     Minimal,
     /// Simple in-line function plugin structure.
     /// 
@@ -277,6 +277,7 @@ impl InitCommand {
                 self.no_aliases = true;
                 self.no_functions_dir = true;
                 self.no_github_dir = true;
+                self.no_git_init = true;
                 self.no_shell_check = true;
                 self.no_shell_spec = true;
             }
@@ -286,6 +287,7 @@ impl InitCommand {
                 self.no_aliases = false;
                 self.no_functions_dir = true;
                 self.no_github_dir = true;
+                self.no_git_init = false;
                 self.no_shell_check = false;
                 self.no_shell_spec = false;
             }
@@ -295,6 +297,7 @@ impl InitCommand {
                 self.no_aliases = false;
                 self.no_functions_dir = false;
                 self.no_github_dir = false;
+                self.no_git_init = false;
                 self.no_shell_check = false;
                 self.no_shell_spec = false;
             }
