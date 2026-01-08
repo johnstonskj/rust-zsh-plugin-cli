@@ -142,7 +142,7 @@ pub(crate) struct InitCommand {
     /// The name of the new plugin.
     ///
     /// Plugin names are restricted to a "safe" subset corresponding to the
-    /// following regular expression /[a-zA-Z][a-zA-Z0-9_-]/.
+    /// following regular expression `\[a-zA-Z\]\[a-zA-Z0-9_-\]``.
     name: Name,
 }
 
