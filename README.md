@@ -4,12 +4,12 @@ A command-line tool to generate new Zsh plugins.
 
 [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![MIT License](https://img.shields.io/badge/license-mit-118811.svg)](https://opensource.org/license/mit)
-[![Rust Workflow](https://github.com/johnstonskj/rust-zsh-plugin/actions/workflows/rust.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin/actions/workflows/rust.yml>)
-[![Security Audit Workflow](https://github.com/johnstonskj/rust-zsh-plugin/actions/workflows/security-audit.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin/actions/workflows/security-audit.yml>)
-[![Coverage Status](https://codecov.io/github/johnstonskj/rust-zsh-plugin/graph/badge.svg?token=1HGN6M4KIT)](<https://codecov.io/github/johnstonskj/rust-zsh-plugin>)
+[![Rust Workflow](https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/rust.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/rust.yml>)
+[![Security Audit Workflow](https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/security-audit.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/security-audit.yml>)
+[![Coverage Status](https://codecov.io/github/johnstonskj/rust-zsh-plugin-cli/graph/badge.svg?token=1HGN6M4KIT)](<https://codecov.io/github/johnstonskj/rust-zsh-plugin-cli>)
 [![crates.io](https://img.shields.io/crates/v/zsh-plugin.svg)](https://crates.io/crates/zsh-plugin)
 [![docs.rs](https://docs.rs/xml_dom/badge.svg)](https://docs.rs/zsh-plugin)
-[![GitHub stars](https://img.shields.io/github/stars/johnstonskj/rust-zsh-plugin.svg)](<https://github.com/johnstonskj/rust-zsh-plugin/stargazers>)
+[![GitHub stars](https://img.shields.io/github/stars/johnstonskj/rust-zsh-plugin-cli.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/stargazers>)
 
 Add a longer description here.
 
