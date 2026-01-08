@@ -119,6 +119,10 @@ pub(crate) struct InitCommand {
     #[arg(long, short = 'H', action, conflicts_with = "template")]
     no_github_dir: bool,
 
+    /// Do not include a README file.
+    #[arg(long, short = 'R', action, conflicts_with = "template")]
+    no_readme: bool,
+
     /// Do not include support for testing using shellspec.
     /// 
     /// Add testing steps to the Makefile and shell.yml (Github Action) files.
@@ -254,6 +258,9 @@ impl InitCommand {
     pub(crate) fn no_aliases(&self) -> bool {
         self.no_aliases
     }
+    pub(crate) fn no_readme(&self) -> bool {
+        self.no_readme
+    }
     pub(crate) fn no_shell_check(&self) -> bool {
         self.no_shell_check
     }
@@ -277,7 +284,8 @@ impl InitCommand {
                 self.no_aliases = true;
                 self.no_functions_dir = true;
                 self.no_github_dir = true;
-                self.no_git_init = true;
+                self.no_git_init = false;
+                self.no_readme = true;
                 self.no_shell_check = true;
                 self.no_shell_spec = true;
             }
@@ -288,6 +296,7 @@ impl InitCommand {
                 self.no_functions_dir = true;
                 self.no_github_dir = true;
                 self.no_git_init = false;
+                self.no_readme = false;
                 self.no_shell_check = false;
                 self.no_shell_spec = false;
             }
@@ -298,6 +307,7 @@ impl InitCommand {
                 self.no_functions_dir = false;
                 self.no_github_dir = false;
                 self.no_git_init = false;
+                self.no_readme = false;
                 self.no_shell_check = false;
                 self.no_shell_spec = false;
             }

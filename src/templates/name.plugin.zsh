@@ -12,7 +12,9 @@
 # Public variables:
 #
 # * `{{ plugin_var }}`; plugin-defined global associative array with the following keys:
+{% if include_aliases -%}
 #   * `_ALIASES`; a list of all aliases defined by the plugin.
+{% endif -%}
 #   * `_FUNCTIONS`; a list of all functions defined by the plugin.
 #   * `_PLUGIN_DIR`; the directory the plugin is sourced from.
 {% if include_bin_dir -%}
@@ -40,8 +42,13 @@ declare -gA {{ plugin_var }}
 {%- endif %}
 {{ plugin_var }}[_FUNCTIONS]=""
 
-# Save current state for any global environment variables that may be modified
-# by the plugin here.
+# Set the path for any custom directories here.
+# Example:
+# {{ plugin_var }}[_PATH]="<SOME_PATH>"
+
+# Saving the current state for any modified global environment variables.
+# Example:
+# {{ plugin_var }}[_OLD_<VAR_NAME>]="${<VAR_NAME>}"
 
 ############################################################################
 # Internal Support Functions
@@ -127,7 +134,12 @@ declare -gA {{ plugin_var }}
     fi
     {%- endif %}
 
-    # Export any environment variables here if necessary.
+    # Add _PATH to path.
+    # path+=( "{{ plugin_var }}[_PATH]" )
+
+    # Export environment variables.
+
+    # Define any aliases here, or in their own section below.
 }
 .{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
 
@@ -157,17 +169,27 @@ declare -gA {{ plugin_var }}
     done
     {% endif %}
 
-    # Remove the global data variable.
-    unset {{ plugin_var }}
-
+    {% if include_bin_dir -%}
+    # Remove bin directory from path.
+    path=( "${(@)path:#{{ _shv_start }}{{ plugin_var }}[_PLUGIN_BIN_DIR]{{ _shv_end }}}" )
+    {%- endif -%}
     {% if include_functions_dir -%}
     # Remove functions directory from fpath.
-    fpath=("${(@)fpath:#{{ _shv_start }}{{ plugin_var }}[_PLUGIN_FNS_DIR]{{ _shv_end }}}")
+    fpath=( "${(@)fpath:#{{ _shv_start }}{{ plugin_var }}[_PLUGIN_FNS_DIR]{{ _shv_end }}}" )
     {%- endif -%}
 
-    # Remove/reset any exported environment variables here if necessary.
+    # Removing path/fpath entries.
+    # Example:
+    # path=( "${(@)path:#{{ _shv_start }}{{ plugin_var }}[_PATH]{{ _shv_end }}}" )
 
-    # Remove this function.
+    # Reset global environment variables .
+    # Example:
+    # export <VAR_NAME>="{{ _shv_start }}{{ plugin_var }}[_OLD_<VAR_NAME>]{{ _shv_end }}"
+
+    # Remove the global data variable (after above!).
+    unset {{ plugin_var }}
+
+    # Remove this function last.
     unfunction {{ plugin_name }}_plugin_unload
 }
 
@@ -181,7 +203,7 @@ declare -gA {{ plugin_var }}
 
     printf "An example function in {{plugin_name}}, var: {{ _shv_start }}{{ plugin_var }}_EXAMPLE{{ _shv_end }}"
 }
-_{{ plugin_name }}_remember_fn {{ plugin_name }}_example
+.{{ plugin_name }}_remember_fn {{ plugin_name }}_example
 {%- endif %}
 
 {% if include_aliases -%}

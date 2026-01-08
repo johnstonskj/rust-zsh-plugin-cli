@@ -20,6 +20,7 @@ const O_INCLUDE_BIN_DIR: &str = "include_bin_dir";
 const O_INCLUDE_FUNCTIONS_DIR: &str = "include_functions_dir";
 const O_INCLUDE_GIT_INIT: &str = "include_git_init";
 const O_INCLUDE_GITHUB_DIR: &str = "include_github_dir";
+const O_INCLUDE_README: &str = "include_readme";
 const O_INCLUDE_SHELL_CHECK: &str = "include_shell_check";
 const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
 
@@ -119,20 +120,22 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
             force,
         )?;
     }
+ 
+    if ctx.get(O_INCLUDE_README).unwrap().as_bool().unwrap() {
+        render_template(
+            &mut tera,
+            &ctx,
+            T_README,
+            &target_root.join(P_README),
+            force,
+        )?;
+    }
 
     render_template(
         &mut tera,
         &ctx,
         T_PLUGIN_SOURCE,
         &target_root.join(format!("{plugin_name}.plugin.zsh")),
-        force,
-    )?;
-
-    render_template(
-        &mut tera,
-        &ctx,
-        T_README,
-        &target_root.join(P_README),
         force,
     )?;
 
@@ -224,6 +227,7 @@ impl From<InitCommand> for Context {
         ctx.insert(O_INCLUDE_FUNCTIONS_DIR, &!cmd.no_functions_dir());
         ctx.insert(O_INCLUDE_GITHUB_DIR, &!cmd.no_github_dir());
         ctx.insert(O_INCLUDE_GIT_INIT, &!cmd.no_git_init());
+        ctx.insert(O_INCLUDE_README, &!cmd.no_readme());
         ctx.insert(O_INCLUDE_SHELL_CHECK, &!cmd.no_shell_check());
         ctx.insert(O_INCLUDE_SHELL_SPEC, &!cmd.no_shell_spec());
         if let Some(description) = cmd.description() {
