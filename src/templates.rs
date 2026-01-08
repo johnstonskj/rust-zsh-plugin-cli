@@ -1,8 +1,12 @@
-use std::{fs::{create_dir_all, write}, path::{Path, PathBuf}, process::ExitCode};
+use crate::{cli::InitCommand, error::Error};
 use git2::Repository;
+use std::{
+    fs::{create_dir_all, write},
+    path::{Path, PathBuf},
+    process::ExitCode,
+};
 use tera::{Context, Tera};
 use tracing::{error, trace};
-use crate::{cli::InitCommand, error::Error};
 
 // ------------------------------------------------------------------------------------------------
 // Public Functions
@@ -95,13 +99,14 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
             &mut tera,
             &ctx,
             T_FUNCTIONS_EXAMPLE,
-            &functions.join(format!("{plugin_name}_example")), 
+            &functions.join(format!("{plugin_name}_example")),
             force,
         )?;
     }
-    
-    if ctx.get(O_INCLUDE_SHELL_CHECK).unwrap().as_bool().unwrap() 
-    || ctx.get(O_INCLUDE_SHELL_SPEC).unwrap().as_bool().unwrap() {
+
+    if ctx.get(O_INCLUDE_SHELL_CHECK).unwrap().as_bool().unwrap()
+        || ctx.get(O_INCLUDE_SHELL_SPEC).unwrap().as_bool().unwrap()
+    {
         render_template(
             &mut tera,
             &ctx,
@@ -110,7 +115,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
             force,
         )?;
     }
- 
+
     if ctx.get(O_INCLUDE_BASH_WRAPPER).unwrap().as_bool().unwrap() {
         render_template(
             &mut tera,
@@ -120,7 +125,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
             force,
         )?;
     }
- 
+
     if ctx.get(O_INCLUDE_README).unwrap().as_bool().unwrap() {
         render_template(
             &mut tera,
@@ -175,7 +180,9 @@ fn make_repository(path: &Path, force: bool) -> Result<(), Error> {
         }
     } else {
         error!("Target Git repository path {repo_dir:?} already exists");
-        Err(Error::TargetExistsError { path: repo_dir.to_path_buf() } )
+        Err(Error::TargetExists {
+            path: repo_dir.to_path_buf(),
+        })
     }
 }
 
@@ -188,15 +195,23 @@ fn make_directory(path: &Path, force: bool) -> Result<(), Error> {
         Ok(())
     } else {
         error!("Target directory {path:?} already exists");
-        Err(Error::TargetExistsError { path: path.to_path_buf() } )
+        Err(Error::TargetExists {
+            path: path.to_path_buf(),
+        })
     }
 }
 
-fn render_template(tera: &mut Tera, ctx: &Context, template: &str, file_path: &Path, force: bool) -> Result<(), Error> {
+fn render_template(
+    tera: &mut Tera,
+    ctx: &Context,
+    template: &str,
+    file_path: &Path,
+    force: bool,
+) -> Result<(), Error> {
     trace!("render_template => to_file: '{file_path:?}', force: {force}");
 
     if !file_path.exists() || (file_path.is_file() && force) {
-        match tera.render_str(&template, &ctx) {
+        match tera.render_str(template, ctx) {
             Ok(content) => {
                 write(file_path, content)?;
                 report_progress!();
@@ -209,10 +224,11 @@ fn render_template(tera: &mut Tera, ctx: &Context, template: &str, file_path: &P
         }
     } else {
         error!("Target file {file_path:?} already exists");
-        Err(Error::TargetExistsError { path: file_path.to_path_buf() } )
+        Err(Error::TargetExists {
+            path: file_path.to_path_buf(),
+        })
     }
 }
-
 
 // ------------------------------------------------------------------------------------------------
 // Context Implementations

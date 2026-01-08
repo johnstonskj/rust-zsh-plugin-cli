@@ -1,4 +1,3 @@
-
 pub trait OnceCommand {
     type Output;
     type Error: std::error::Error; // std::convert::Infallible

@@ -48,7 +48,7 @@ impl FromStr for Name {
         } else if !s.chars().next().unwrap().is_ascii_alphabetic() {
             error!("Name::from_str; initial character must be alphabetic");
             Err(NameErrorKind::InvalidInitialChar.into())
-        } else if !(&s[1..])
+        } else if !(s[1..])
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
         {
