@@ -27,6 +27,7 @@ const O_INCLUDE_GITHUB_DIR: &str = "include_github_dir";
 const O_INCLUDE_README: &str = "include_readme";
 const O_INCLUDE_SHELL_CHECK: &str = "include_shell_check";
 const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
+const O_USE_ZPLUGINS: &str = "use_zplugins";
 
 const P_BIN_DIR: &str = "bin";
 const P_DOT_GITIGNORE: &str = ".gitignore";
@@ -139,7 +140,11 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
     render_template(
         &mut tera,
         &ctx,
-        T_PLUGIN_SOURCE,
+            if ctx.get(O_USE_ZPLUGINS).unwrap().as_bool().unwrap() {
+            T_PLUGIN_SOURCE_ZPLUGINS
+        } else {
+            T_PLUGIN_SOURCE
+        },
         &target_root.join(format!("{plugin_name}.plugin.zsh")),
         force,
     )?;
@@ -159,6 +164,7 @@ const T_GIT_IGNORE: &str = include_str!("templates/.gitignore");
 const T_GITHUB_WORFLOW_SHELL: &str = include_str!("templates/.github/workflows/shell.yml");
 const T_MAKEFILE: &str = include_str!("templates/Makefile");
 const T_PLUGIN_SOURCE: &str = include_str!("templates/name.plugin.zsh");
+const T_PLUGIN_SOURCE_ZPLUGINS: &str = include_str!("templates/name.zplugins.zsh");
 const T_PLUGIN_WRAPPER: &str = include_str!("templates/name.bash");
 const T_README: &str = include_str!("templates/README.md");
 
@@ -246,10 +252,11 @@ impl From<InitCommand> for Context {
         ctx.insert(O_INCLUDE_README, &!cmd.no_readme());
         ctx.insert(O_INCLUDE_SHELL_CHECK, &!cmd.no_shell_check());
         ctx.insert(O_INCLUDE_SHELL_SPEC, &!cmd.no_shell_spec());
+        ctx.insert(O_USE_ZPLUGINS, &cmd.use_zplugins());
         if let Some(description) = cmd.description() {
             ctx.insert(V_SHORT_DESCRIPTION, description);
         } else {
-            ctx.insert(V_SHORT_DESCRIPTION, "Add one-line description here...");
+            ctx.insert(V_SHORT_DESCRIPTION, "Zsh plugin to do something...");
         }
         let display_name = cmd.name().to_string();
         let plugin_name = display_name.replace('-', "_");

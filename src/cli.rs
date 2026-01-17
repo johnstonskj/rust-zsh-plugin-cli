@@ -133,6 +133,17 @@ pub(crate) struct InitCommand {
     #[arg(long, short = 'u', env = "USER")]
     gihub_user: String,
 
+    /// Use the `zplugins` plugin for support functions, shortening plugin size.
+    /// 
+    /// This will require users of the plugin to have the `zplugins` configured 
+    /// first as it uses`@zplugin_normalize_zero` and `@zplugin_declare_global`
+    /// to setup the plugin environment. It replaces `.<plugin_name>_remember_fn`
+    /// with `@zplugin_remember_fn` and `.<plugin_name>_define_alias` with
+    /// `@zplugin_define_alias`. Finally, `@zplugin_register` and 
+    /// `@zplugin_unregister`.
+    #[arg(long, short = 'z')]
+    use_zplugins: bool,
+
     /// Short description of the plugin.
     ///
     /// This description is added to the plugin source and README.md files.
@@ -272,6 +283,9 @@ impl InitCommand {
     }
     pub(crate) fn no_shell_spec(&self) -> bool {
         self.no_shell_spec
+    }
+    pub(crate) fn use_zplugins(&self) -> bool {
+        self.use_zplugins
     }
     pub(crate) fn description(&self) -> Option<&str> {
         self.description.as_deref()

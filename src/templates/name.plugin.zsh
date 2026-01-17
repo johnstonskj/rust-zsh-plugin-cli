@@ -1,14 +1,17 @@
 # -*- mode: sh; eval: (sh-set-shell "zsh") -*-
 #
-# Plugin Name: {{ plugin_display_name }}
-# Repository: https://github.com/{{ github_user }}/zsh-{{ plugin_name }}-plugin
-#
+# Name: {{ plugin_display_name }}
 {% if short_description -%}
-# Description:
-#
-#   {{ short_description }}
-#
+# Description: {{ short_description }}
 {% endif -%}
+# Repository: https://github.com/{{ github_user }}/zsh-{{ plugin_name }}-plugin
+# Homepage: **include if different from repository URL**
+# Version: **use semantic versioning, e.g. 0.1.0, or remove**
+# License: **use license expressions, e.g., MIT AND Apache-2.0, or remove**
+# Copyright: **copyright notice in lieu of license, e.g., ©️ YEAR FULL_NAME <EMAIL>, or remove**
+#
+# Long description TBD.
+#
 # Public variables:
 #
 # * `{{ plugin_var }}`; plugin-defined global associative array with the following keys:
