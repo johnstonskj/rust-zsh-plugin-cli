@@ -14,7 +14,9 @@
 #
 # Public variables:
 #
-# * `{{ plugin_var }}`; plugin-defined global associative array with the following keys:
+# * `{{ plugin_var }}`; plugin-defined global associative array, see
+#   [standard-plugins-hash](# See https://wiki.zshell.dev/community/zsh_plugin_standard#standard-plugins-hash),
+#   with the following keys:
 {% if include_aliases -%}
 #   * `_ALIASES`; a list of all aliases defined by the plugin.
 {% endif -%}

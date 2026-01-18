@@ -66,8 +66,8 @@
 }
 @zplugin_remember_fn {{ plugin_name }}_plugin_init
 
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
 {{ plugin_name }}_plugin_unload() {
+    # See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
     builtin emulate -L zsh
 
     # This should be the FIRST step.
