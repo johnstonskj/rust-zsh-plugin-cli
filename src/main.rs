@@ -1,3 +1,34 @@
+//! # zsh-plugin-cli
+//!
+//! A command-line tool to generate new Zsh plugin scaffolds with configurable features.
+//!
+//! This tool creates a complete plugin directory structure including:
+//! - Main plugin source file with function tracking and unload support
+//! - Optional autoloaded functions directory
+//! - Optional bin directory for scripts
+//! - GitHub Actions workflows for shellcheck/shellspec
+//! - Git repository initialization
+//!
+//! ## Architecture
+//!
+//! The crate is organized around a simple command pattern:
+//!
+//! - [`cli`] - Command-line argument parsing using clap
+//! - [`command`] - The [`OnceCommand`](command::OnceCommand) trait for executable commands
+//! - [`error`] - Error types and conversions
+//! - [`name`] - Plugin name validation
+//! - [`templates`] - Template rendering using Tera
+//!
+//! ## Example
+//!
+//! ```bash
+//! # Create a complete plugin with all features
+//! zsh-plugin init my-plugin -t complete
+//!
+//! # Create a minimal plugin
+//! zsh-plugin init my-plugin -t minimal
+//! ```
+
 // ------------------------------------------------------------------------------------------------
 // Modules
 // ------------------------------------------------------------------------------------------------

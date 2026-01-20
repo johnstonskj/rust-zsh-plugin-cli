@@ -9,7 +9,10 @@ A command-line tool to generate new Zsh plugins.
 [![crates.io](https://img.shields.io/crates/v/zsh-plugin.svg)](https://crates.io/crates/zsh-plugin)
 [![GitHub stars](https://img.shields.io/github/stars/johnstonskj/rust-zsh-plugin-cli.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/stargazers>)
 
-Add a longer description here.
+This tool scaffolds Zsh plugins with best practices built-in, including function
+tracking for clean unloading, optional alias support, autoloaded functions, and
+CI/CD workflows for shellcheck and shellspec. Choose from minimal, simple, or
+complete templates to match your plugin's complexity.
 
 ## Install
 
