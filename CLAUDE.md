@@ -2,7 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build Commands
+## Implementation 
+
+This tool is implemented in Rust with the following major dependencies for CLI development.
+
+- `clap`
+- `clap-verbosity-flag`
+- `clap_complete`
+- `tracing`
+- `tracing-subscriber`
+
+### Build Commands
 
 ```bash
 cargo build              # Build the project
@@ -34,7 +44,7 @@ This is a CLI tool (`zsh-plugin`) that scaffolds Zsh plugin directory structures
 
 **Template files**: Located in `src/templates/`, embedded via `include_str!()`. Templates use Tera syntax with variables like `{{ plugin_name }}`.
 
-## Guidelines
+## Style Guidelines
 
 ### Code Style
 
