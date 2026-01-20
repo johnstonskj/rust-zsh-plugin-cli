@@ -131,7 +131,7 @@ pub(crate) struct InitCommand {
 
     /// Set the name of the Github user for inclusion in README.md.
     #[arg(long, short = 'u', env = "USER")]
-    gihub_user: String,
+    github_user: String,
 
     /// Use the `zplugins` plugin for support functions, shortening plugin size.
     /// 
@@ -291,7 +291,7 @@ impl InitCommand {
         self.description.as_deref()
     }
     pub(crate) fn github_user(&self) -> &str {
-        &self.gihub_user
+        &self.github_user
     }
     pub(crate) fn name(&self) -> &Name {
         &self.name
