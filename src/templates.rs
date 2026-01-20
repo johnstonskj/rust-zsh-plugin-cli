@@ -9,6 +9,26 @@ use tera::{Context, Tera};
 use tracing::{error, trace};
 
 // ------------------------------------------------------------------------------------------------
+// Context Helper Functions
+// ------------------------------------------------------------------------------------------------
+
+fn ctx_get_str<'a>(ctx: &'a Context, key: &str) -> Result<&'a str, Error> {
+    ctx.get(key)
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| Error::Unknown {
+            message: format!("Missing or invalid context key: {key}"),
+        })
+}
+
+fn ctx_get_bool(ctx: &Context, key: &str) -> Result<bool, Error> {
+    ctx.get(key)
+        .and_then(|v| v.as_bool())
+        .ok_or_else(|| Error::Unknown {
+            message: format!("Missing or invalid context key: {key}"),
+        })
+}
+
+// ------------------------------------------------------------------------------------------------
 // Public Functions
 // ------------------------------------------------------------------------------------------------
 
@@ -33,7 +53,7 @@ const P_BIN_DIR: &str = "bin";
 const P_DOT_GITIGNORE: &str = ".gitignore";
 const P_DOT_KEEP: &str = ".gitkeep";
 const P_FUNCTIONS_DIR: &str = "functions";
-const P_GIHUB_DIR: &str = ".github";
+const P_GITHUB_DIR: &str = ".github";
 const P_MAKEFILE: &str = "Makefile";
 const P_README: &str = "README.md";
 const P_SHELL_YML: &str = "shell.yml";
@@ -51,12 +71,12 @@ macro_rules! report_progress {
 pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Error> {
     trace!("init_new_plugin => ctx: {ctx:?}, force: {force}");
     let mut tera = Tera::default();
-    let plugin_name: &str = ctx.get(V_PLUGIN_NAME).unwrap().as_str().unwrap();
+    let plugin_name: &str = ctx_get_str(&ctx, V_PLUGIN_NAME)?;
 
     let target_root = PathBuf::from(&format!("zsh-{plugin_name}-plugin"));
     make_directory(&target_root, force)?;
 
-    if ctx.get(O_INCLUDE_GIT_INIT).unwrap().as_bool().unwrap() {
+    if ctx_get_bool(&ctx, O_INCLUDE_GIT_INIT)? {
         make_repository(&target_root, force)?;
         render_template(
             &mut tera,
@@ -67,8 +87,8 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx.get(O_INCLUDE_GITHUB_DIR).unwrap().as_bool().unwrap() {
-        let github = target_root.join(P_GIHUB_DIR);
+    if ctx_get_bool(&ctx, O_INCLUDE_GITHUB_DIR)? {
+        let github = target_root.join(P_GITHUB_DIR);
         make_directory(&github, force)?;
         let workflows = github.join(P_WORKFLOWS_DIR);
         make_directory(&workflows, force)?;
@@ -81,7 +101,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx.get(O_INCLUDE_BIN_DIR).unwrap().as_bool().unwrap() {
+    if ctx_get_bool(&ctx, O_INCLUDE_BIN_DIR)? {
         let bindir = target_root.join(P_BIN_DIR);
         make_directory(&bindir, force)?;
         render_template(
@@ -93,7 +113,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx.get(O_INCLUDE_FUNCTIONS_DIR).unwrap().as_bool().unwrap() {
+    if ctx_get_bool(&ctx, O_INCLUDE_FUNCTIONS_DIR)? {
         let functions = target_root.join(P_FUNCTIONS_DIR);
         make_directory(&functions, force)?;
         render_template(
@@ -105,9 +125,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx.get(O_INCLUDE_SHELL_CHECK).unwrap().as_bool().unwrap()
-        || ctx.get(O_INCLUDE_SHELL_SPEC).unwrap().as_bool().unwrap()
-    {
+    if ctx_get_bool(&ctx, O_INCLUDE_SHELL_CHECK)? || ctx_get_bool(&ctx, O_INCLUDE_SHELL_SPEC)? {
         render_template(
             &mut tera,
             &ctx,
@@ -117,7 +135,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx.get(O_INCLUDE_BASH_WRAPPER).unwrap().as_bool().unwrap() {
+    if ctx_get_bool(&ctx, O_INCLUDE_BASH_WRAPPER)? {
         render_template(
             &mut tera,
             &ctx,
@@ -127,7 +145,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx.get(O_INCLUDE_README).unwrap().as_bool().unwrap() {
+    if ctx_get_bool(&ctx, O_INCLUDE_README)? {
         render_template(
             &mut tera,
             &ctx,
@@ -137,14 +155,15 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
+    let template = if ctx_get_bool(&ctx, O_USE_ZPLUGINS)? {
+        T_PLUGIN_SOURCE_ZPLUGINS
+    } else {
+        T_PLUGIN_SOURCE
+    };
     render_template(
         &mut tera,
         &ctx,
-            if ctx.get(O_USE_ZPLUGINS).unwrap().as_bool().unwrap() {
-            T_PLUGIN_SOURCE_ZPLUGINS
-        } else {
-            T_PLUGIN_SOURCE
-        },
+        template,
         &target_root.join(format!("{plugin_name}.plugin.zsh")),
         force,
     )?;
