@@ -12,9 +12,9 @@
 #
 # Long description TBD.
 #
-# Public variables:
+# State variables:
 #
-# * `{{ plugin_var }}`; plugin-defined global associative array with the following keys:
+# * `PLUGIN`; plugin-defined global associative array with the following keys:
 {% if include_aliases -%}
 #   * `_ALIASES`; a list of all aliases defined by the plugin.
 {% endif -%}
@@ -27,22 +27,20 @@
 {% if include_functions_dir -%}
 #   * `_PLUGIN_FNS_DIR`; the directory (if present) for plugin autoload functions.
 {% endif -%}
+#
+# Public Variables:
+#
 # * `{{ plugin_var }}_EXAMPLE`; if set it does something magical.
 #
 
 ############################################################################
-# Standard Setup Behavior
+# Plugin Setup
 ############################################################################
 
-0="$(@zplugin_normalize_zero "${0}")"
-
-@zplugin_declare_global {{ plugin_name }} "${0}"
-    # To add custom directories to PATH:
-    # path DIR
-    # To add custom directories to FPATH:
-    # fpath DIR
-    # To save any global variables, add them to this call in the form:
-    # save VAR_NAME
+typeset -A PLUGIN
+PLUGIN[_PATH]="$(@zplugins_normalize_zero "$0")"
+PLUGIN[_NAME]="${${PLUGIN[_PATH]:t}%%.*}"
+PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 
 ############################################################################
 # Plugin Lifecycle
@@ -62,7 +60,7 @@
     # Define any aliases here, or in their own section below.
 
     # This should be the LAST step.
-    @zplugin_register {{ plugin_name }}
+    @zplugin_register {{ plugin_name }} ${PLUGIN[_PATH]}
 }
 @zplugin_remember_fn {{ plugin_name }}_plugin_init
 
