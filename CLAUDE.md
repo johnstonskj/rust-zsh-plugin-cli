@@ -44,6 +44,26 @@ This is a CLI tool (`zsh-plugin`) that scaffolds Zsh plugin directory structures
 
 **Template files**: Located in `src/templates/`, embedded via `include_str!()`. Templates use Tera syntax with variables like `{{ plugin_name }}`.
 
+## Workflows
+
+### Create a new CLI command
+
+When adding a new command to the CLI:
+
+1. First plan the changes, including:
+   - the name of the command and an alias (usually short form) if required,
+   - any flags required to modify behavior,
+   - any named arguments/options required,
+   - any positional arguments.
+2. Implementation requires the following:
+   - a new struct in `cli.rs` :
+     - named `{{ name }}Command`,
+     - derive implementations of *at least* `Clone`, `Debug`, and `Parser`,
+     - add fields for each flag, option, and positional argument.
+   - add implementation of `OnceCommand` for this new struct.
+   - add a new variant in the `Commands` enum in `cli.rs` with the name {{ name }}.
+   - add a match arm to the `execute` method in the `OnceCommand` implementation on `Commands`.
+
 ## Style Guidelines
 
 ### Code Style
