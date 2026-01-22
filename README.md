@@ -72,16 +72,20 @@ The resulting plugin contains the following content.
    named `NAME_example`. Generation can be skipped if the
    `no-functions-dir` option is set.
 
-5. If the option `add-bin-dir is set, an empty `bin` directory for
+5. If the option `add-bin-dir is set an empty `bin` directory for
    plugin specific binaries is created.
 
 6. A file `.gitignore`. Generation can be skipped if both the options
    `no-shell-check` and `no-shell-spec`.
 
-7. A file `Makefile` for GNU Make. Generation can be skipped if both
-   the options `no-shell-check` and `no-shell-spec`.
+7. A directory `doc` and shell script `mkdoc.zsh`. Generation can be
+   skipped if the `no-shell-doc` option is set.
 
-8. A file `README.md` containing only a basic skeleton. Generation can be
+8. A file `Makefile` for GNU Make. Generation can be skipped if
+   the options `no-shell-check`, `no-shell-doc`, and `no-shell-spec`
+   are all true.
+
+9. A file `README.md` containing only a basic skeleton. Generation can be
    skipped if the `no-readme` is set.
 
 Rather than setting all options manually, three templates are provided with
