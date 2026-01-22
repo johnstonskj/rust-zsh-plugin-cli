@@ -98,6 +98,12 @@ pub(crate) struct InitCommand {
     #[arg(long, short = 'C', action, conflicts_with = "template")]
     no_shell_check: bool,
 
+    /// Do not include support for documentation generation with shdoc.
+    ///
+    /// Add documentation steps to the Makefile.
+    #[arg(long, short = 'D', action, conflicts_with = "template")]
+    no_shell_doc: bool,
+
     /// Do not include a 'functions' sub-directory and example file.
     #[arg(long, short = 'F', action, conflicts_with = "template")]
     no_functions_dir: bool,
@@ -281,6 +287,9 @@ impl InitCommand {
     pub(crate) fn no_shell_check(&self) -> bool {
         self.no_shell_check
     }
+    pub(crate) fn no_shell_doc(&self) -> bool {
+        self.no_shell_doc
+    }
     pub(crate) fn no_shell_spec(&self) -> bool {
         self.no_shell_spec
     }
@@ -307,6 +316,7 @@ impl InitCommand {
                 self.no_git_init = false;
                 self.no_readme = true;
                 self.no_shell_check = true;
+                self.no_shell_doc = true;
                 self.no_shell_spec = true;
             }
             Some(Template::Simple) => {
@@ -318,6 +328,7 @@ impl InitCommand {
                 self.no_git_init = false;
                 self.no_readme = false;
                 self.no_shell_check = false;
+                self.no_shell_doc = false;
                 self.no_shell_spec = false;
             }
             Some(Template::Complete) | None => {
@@ -329,6 +340,7 @@ impl InitCommand {
                 self.no_git_init = false;
                 self.no_readme = false;
                 self.no_shell_check = false;
+                self.no_shell_doc = false;
                 self.no_shell_spec = false;
             }
         }

@@ -22,7 +22,7 @@ test: $(SOURCES) $(TEST_SOURCES)
 coverage: $(SOURCES) $(TEST_SOURCES)
 	shellspec --kcov --kcov-options "--include-pattern=.sh,.bash,.zsh"
 {% endif %}
-
+{% if include_shell_doc -%}
 DOC_CMD=./mkdoc.zsh
 DOC_DIR=doc
 DOC_SOURCE={{ plugin_name }}.plugin.zsh
@@ -32,3 +32,4 @@ $(DOC_DIR):
 
 shdoc: $(DOC_SOURCES) $(DOC_DIR)
 	$(DOC_CMD)
+{% endif %}

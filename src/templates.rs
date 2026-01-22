@@ -46,6 +46,7 @@ const O_INCLUDE_GIT_INIT: &str = "include_git_init";
 const O_INCLUDE_GITHUB_DIR: &str = "include_github_dir";
 const O_INCLUDE_README: &str = "include_readme";
 const O_INCLUDE_SHELL_CHECK: &str = "include_shell_check";
+const O_INCLUDE_SHELL_DOC: &str = "include_shell_doc";
 const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
 const O_USE_ZPLUGINS: &str = "use_zplugins";
 
@@ -138,7 +139,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx_get_bool(&ctx, O_INCLUDE_SHELL_CHECK)? || ctx_get_bool(&ctx, O_INCLUDE_SHELL_SPEC)? {
+    if ctx_get_bool(&ctx, O_INCLUDE_SHELL_CHECK)? || ctx_get_bool(&ctx, O_INCLUDE_SHELL_DOC)? || ctx_get_bool(&ctx, O_INCLUDE_SHELL_SPEC)? {
         render_template(
             &mut tera,
             &ctx,
@@ -181,15 +182,17 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         force,
     )?;
 
-    let docdir = target_root.join(P_DOC_DIR);
-    make_directory(&docdir, force)?;
-    render_template(
-        &mut tera,
-        &ctx,
-        T_MKDOC,
-        &target_root.join(P_MKDOC),
-        force,
-    )?;
+    if ctx_get_bool(&ctx, O_INCLUDE_SHELL_DOC)? {
+        let docdir = target_root.join(P_DOC_DIR);
+        make_directory(&docdir, force)?;
+        render_template(
+            &mut tera,
+            &ctx,
+            T_MKDOC,
+            &target_root.join(P_MKDOC),
+            force,
+        )?;
+    }
 
     report_progress!(done);
 
@@ -279,6 +282,7 @@ impl From<InitCommand> for Context {
         ctx.insert(O_INCLUDE_GIT_INIT, &!cmd.no_git_init());
         ctx.insert(O_INCLUDE_README, &!cmd.no_readme());
         ctx.insert(O_INCLUDE_SHELL_CHECK, &!cmd.no_shell_check());
+        ctx.insert(O_INCLUDE_SHELL_DOC, &!cmd.no_shell_doc());
         ctx.insert(O_INCLUDE_SHELL_SPEC, &!cmd.no_shell_spec());
         ctx.insert(O_USE_ZPLUGINS, &cmd.use_zplugins());
         if let Some(description) = cmd.description() {
