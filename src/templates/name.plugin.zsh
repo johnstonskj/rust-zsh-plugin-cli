@@ -1,39 +1,45 @@
 # -*- mode: sh; eval: (sh-set-shell "zsh") -*-
 #
-# Name: {{ plugin_display_name }}
+# @name {{ plugin_display_name }}
 {% if short_description -%}
-# Description: {{ short_description }}
+# @description {{ short_description }}
 {% endif -%}
-# Repository: https://github.com/{{ github_user }}/zsh-{{ plugin_name }}-plugin
-# Homepage: **include if different from repository URL**
-# Version: **use semantic versioning, e.g. 0.1.0, or remove**
-# License: **use license expressions, e.g., MIT AND Apache-2.0, or remove**
-# Copyright: **copyright notice in lieu of license, e.g., ©️ YEAR FULL_NAME <EMAIL>, or remove**
+# @repository https://github.com/{{ github_user }}/zsh-{{ plugin_name }}-plugin
+# @homepage **include if different from repository URL**
+# @version **use semantic versioning, e.g. 0.1.0, or remove**
+# @license **use license expressions, e.g., MIT AND Apache-2.0, or remove**
+# @copyright **copyright notice in lieu of license, e.g., ©️ YEAR FULL_NAME <EMAIL>, or remove**
+#
+# @description
 #
 # Long description TBD.
 #
-# Public variables:
+# ### State Variables
 #
-# * `{{ plugin_var }}`; plugin-defined global associative array, see
-#   [standard-plugins-hash](# See https://wiki.zshell.dev/community/zsh_plugin_standard#standard-plugins-hash),
+# * **{{ plugin_var }}**: plugin-defined global associative array, see
+#   [standard-plugins-hash](https://wiki.zshell.dev/community/zsh_plugin_standard#standard-plugins-hash),
 #   with the following keys:
 {% if include_aliases -%}
-#   * `_ALIASES`; a list of all aliases defined by the plugin.
+#   * **_ALIASES**: a list of all aliases defined by the plugin.
 {% endif -%}
-#   * `_FUNCTIONS`; a list of all functions defined by the plugin.
-#   * `_PLUGIN_DIR`; the directory the plugin is sourced from.
+#   * **_FUNCTIONS**: a list of all functions defined by the plugin.
+#   * **_PLUGIN_DIR**: the directory the plugin is sourced from.
 {% if include_bin_dir -%}
-#   * `_PLUGIN_BIN_DIR`; the directory (if present) for plugin specific binaries.
+#   * **_PLUGIN_BIN_DIR**: the directory (if present) for plugin specific binaries.
 {% endif -%}
 {% if include_functions_dir -%}
-#   * `_PLUGIN_FNS_DIR`; the directory (if present) for plugin autoload functions.
+#   * **_PLUGIN_FNS_DIR** the directory (if present) for plugin autoload functions.
 {% endif -%}
-# * `{{ plugin_var }}_EXAMPLE`; if set it does something magical.
+#
+# ### Public Variables
+#
+# * **{ plugin_var }}_EXAMPLE**: if set it does something magical.
 #
 
 ############################################################################
-# Standard Setup Behavior
-############################################################################
+# @section setup
+# @brief Standard path and variable setup.
+#
 
 # See https://wiki.zshell.dev/community/zsh_plugin_standard#zero-handling
 0="${ZERO:-${${0:#$ZSH_ARGZERO}:-${(%):-%N}}}"
@@ -56,8 +62,9 @@ declare -gA {{ plugin_var }}
 # {{ plugin_var }}[_OLD_<VAR_NAME>]="${<VAR_NAME>}"
 
 ############################################################################
-# Internal Support Functions
-############################################################################
+# @support
+# @brief Internal support functions
+#
 
 #
 # This function will add to the `{{ plugin_var }}[_FUNCTIONS]` list which is
@@ -94,9 +101,18 @@ declare -gA {{ plugin_var }}
 .{{ plugin_name }}_remember_fn .{{ plugin_name }}_remember_alias
 {%- endif %}
 
+############################################################################
+# @section lifecycle
+# @brief Plugin lifecycle functions.
+#
+
+#
+# @description
 #
 # This function does the initialization of variables in the global variable
 # `{{ plugin_var }}`. It also adds to `path` and `fpath` as necessary.
+#
+# @noargs
 #
 {{ plugin_name }}_plugin_init() {
     builtin emulate -L zsh
@@ -148,11 +164,11 @@ declare -gA {{ plugin_var }}
 }
 .{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
 
-############################################################################
-# Plugin Unload Function
-############################################################################
-
-# See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
+#
+# @brief See [unload-function](https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function).
+#
+# @noargs
+#
 {{ plugin_name }}_plugin_unload() {
     builtin emulate -L zsh
 
@@ -198,11 +214,16 @@ declare -gA {{ plugin_var }}
     unfunction {{ plugin_name }}_plugin_unload
 }
 
-{% if not include_functions_dir -%}
 ############################################################################
-# Public Functions
-############################################################################
+# @section public
+# @brief Public functions, aliases, and varibles.
+#
 
+{% if not include_functions_dir -%}
+#
+# @noargs
+# @brief Some function that does some thing.
+#
 {{ plugin_name }}_example() {
     builtin emulate -L zsh
 
@@ -212,16 +233,14 @@ declare -gA {{ plugin_var }}
 {%- endif %}
 
 {% if include_aliases -%}
-############################################################################
-# Plugin-defined Aliases
-############################################################################
-
+# Alias my_example ...
 .{{ plugin_name }}_define_alias my_example '{{ plugin_name }}_example'
 {%- endif %}
 
 ############################################################################
-# Initialize Plugin
-############################################################################
+# @section initialization
+# @brief Final plugin initialization.
+#
 
 {{ plugin_name }}_plugin_init
 
