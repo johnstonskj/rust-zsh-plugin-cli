@@ -3,7 +3,7 @@
 SOURCES={{ plugin_name }}.plugin.zsh{% if add_bash_wrapper %} {{ plugin_name }}.bash{% endif %}{% if include_functions_dir %} functions/*{% endif %}
 {% if include_shell_spec %}TEST_SOURCES=spec/{{ plugin_name }}_spec.sh spec/spec_helper.sh{% endif -%}
 
-all: check test
+all: check test doc
 
 check:{% if include_shell_check %} check_sources{% endif %}{% if include_shell_spec %} check_test_sources{% endif %}
 
@@ -22,3 +22,13 @@ test: $(SOURCES) $(TEST_SOURCES)
 coverage: $(SOURCES) $(TEST_SOURCES)
 	shellspec --kcov --kcov-options "--include-pattern=.sh,.bash,.zsh"
 {% endif %}
+
+DOC_CMD=./mkdoc.zsh
+DOC_DIR=doc
+DOC_SOURCE={{ plugin_name }}.plugin.zsh
+
+$(DOC_DIR):
+	mkdir -p $(DOC_DIR)
+
+shdoc: $(DOC_SOURCES) $(DOC_DIR)
+	$(DOC_CMD)

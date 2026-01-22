@@ -50,14 +50,27 @@ const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
 const O_USE_ZPLUGINS: &str = "use_zplugins";
 
 const P_BIN_DIR: &str = "bin";
+const P_DOC_DIR: &str = "doc";
 const P_DOT_GITIGNORE: &str = ".gitignore";
 const P_DOT_KEEP: &str = ".gitkeep";
 const P_FUNCTIONS_DIR: &str = "functions";
 const P_GITHUB_DIR: &str = ".github";
 const P_MAKEFILE: &str = "Makefile";
+const P_MKDOC: &str = "mkdoc.zsh";
 const P_README: &str = "README.md";
 const P_SHELL_YML: &str = "shell.yml";
 const P_WORKFLOWS_DIR: &str = "workflows";
+
+const T_BIN_DIR_KEEP: &str = include_str!("templates/bin/.keep");
+const T_MKDOC: &str = include_str!("templates/mkdoc.zsh");
+const T_FUNCTIONS_EXAMPLE: &str = include_str!("templates/functions/name_example");
+const T_GIT_IGNORE: &str = include_str!("templates/.gitignore");
+const T_GITHUB_WORFLOW_SHELL: &str = include_str!("templates/.github/workflows/shell.yml");
+const T_MAKEFILE: &str = include_str!("templates/Makefile");
+const T_PLUGIN_SOURCE: &str = include_str!("templates/name.plugin.zsh");
+const T_PLUGIN_SOURCE_ZPLUGINS: &str = include_str!("templates/name.zplugins.zsh");
+const T_PLUGIN_WRAPPER: &str = include_str!("templates/name.bash");
+const T_README: &str = include_str!("templates/README.md");
 
 macro_rules! report_progress {
     () => {
@@ -168,24 +181,20 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         force,
     )?;
 
+    let docdir = target_root.join(P_DOC_DIR);
+    make_directory(&docdir, force)?;
+    render_template(
+        &mut tera,
+        &ctx,
+        T_MKDOC,
+        &target_root.join(P_MKDOC),
+        force,
+    )?;
+
     report_progress!(done);
 
     Ok(ExitCode::SUCCESS)
 }
-
-// ------------------------------------------------------------------------------------------------
-// Template Strings
-// ------------------------------------------------------------------------------------------------
-
-const T_BIN_DIR_KEEP: &str = include_str!("templates/bin/.keep");
-const T_FUNCTIONS_EXAMPLE: &str = include_str!("templates/functions/name_example");
-const T_GIT_IGNORE: &str = include_str!("templates/.gitignore");
-const T_GITHUB_WORFLOW_SHELL: &str = include_str!("templates/.github/workflows/shell.yml");
-const T_MAKEFILE: &str = include_str!("templates/Makefile");
-const T_PLUGIN_SOURCE: &str = include_str!("templates/name.plugin.zsh");
-const T_PLUGIN_SOURCE_ZPLUGINS: &str = include_str!("templates/name.zplugins.zsh");
-const T_PLUGIN_WRAPPER: &str = include_str!("templates/name.bash");
-const T_README: &str = include_str!("templates/README.md");
 
 // ------------------------------------------------------------------------------------------------
 // Private Functions

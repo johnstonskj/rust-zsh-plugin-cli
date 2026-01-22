@@ -27,8 +27,8 @@
 #
 
 ############################################################################
-# @section setup
-# @brief Standard path and variable setup.
+# @section Setup
+# @description Standard path and variable setup.
 #
 
 typeset -A PLUGIN
@@ -37,8 +37,8 @@ PLUGIN[_NAME]="${${PLUGIN[_PATH]:t}%%.*}"
 PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 
 ############################################################################
-# @section lifecycle
-# @brief Plugin lifecycle functions.
+# @section Lifecycle
+# @description Plugin lifecycle functions.
 #
 
 #
@@ -94,16 +94,17 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 }
 
 ############################################################################
-# @section public
-# @brief Public functions, aliases, and varibles.
+# @section Public
+# @description Public functions, aliases, and varibles.
 #
 
 # Initialize ${{{ plugin_var }}_EXAMPLE}
 
 {% if not include_functions_dir -%}
 #
+# @description Some function that does some thing.
+#
 # @noargs
-# @brief Some function that does some thing.
 #
 {{ plugin_name }}_example() {
     builtin emulate -L zsh
@@ -119,8 +120,8 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 {%- endif %}
 
 ############################################################################
-# @section initialization
-# @brief Final plugin initialization.
+# @section Initialization
+# @description Final plugin initialization.
 #
 
 {{ plugin_name }}_plugin_init

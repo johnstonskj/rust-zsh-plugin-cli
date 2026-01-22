@@ -2,7 +2,7 @@
 #
 # @name {{ plugin_display_name }}
 {% if short_description -%}
-# @description {{ short_description }}
+# @brief {{ short_description }}
 {% endif -%}
 # @repository https://github.com/{{ github_user }}/zsh-{{ plugin_name }}-plugin
 # @homepage **include if different from repository URL**
@@ -38,7 +38,7 @@
 
 ############################################################################
 # @section setup
-# @brief Standard path and variable setup.
+# @description Standard path and variable setup.
 #
 
 # See https://wiki.zshell.dev/community/zsh_plugin_standard#zero-handling
@@ -63,9 +63,11 @@ declare -gA {{ plugin_var }}
 
 ############################################################################
 # @support
-# @brief Internal support functions
+# @description Internal support functions
 #
 
+#
+# @description
 #
 # This function will add to the `{{ plugin_var }}[_FUNCTIONS]` list which is
 # used at unload time to `unfunction` plugin-defined functions.
@@ -103,7 +105,7 @@ declare -gA {{ plugin_var }}
 
 ############################################################################
 # @section lifecycle
-# @brief Plugin lifecycle functions.
+# @description Plugin lifecycle functions.
 #
 
 #
@@ -165,7 +167,7 @@ declare -gA {{ plugin_var }}
 .{{ plugin_name }}_remember_fn {{ plugin_name }}_plugin_init
 
 #
-# @brief See [unload-function](https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function).
+# @description See [unload-function](https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function).
 #
 # @noargs
 #
@@ -216,13 +218,14 @@ declare -gA {{ plugin_var }}
 
 ############################################################################
 # @section public
-# @brief Public functions, aliases, and varibles.
+# @description Public functions, aliases, and varibles.
 #
 
 {% if not include_functions_dir -%}
 #
+# @description Some function that does some thing.
+#
 # @noargs
-# @brief Some function that does some thing.
 #
 {{ plugin_name }}_example() {
     builtin emulate -L zsh
@@ -239,7 +242,7 @@ declare -gA {{ plugin_var }}
 
 ############################################################################
 # @section initialization
-# @brief Final plugin initialization.
+# @description Final plugin initialization.
 #
 
 {{ plugin_name }}_plugin_init
