@@ -101,6 +101,7 @@ pre-defined selection of settings. These are described in the table below.
 | `no-github-dir`     | true    | true   | false    |
 | `no-readme`         | true    | false  | false    |
 | `no-shell-check`    | true    | false  | false    |
+| `no-shell-doc`    | true    | false  | false    |
 | `no-shell-spec`     | true    | false  | false    |
 
 ### Example
@@ -117,7 +118,7 @@ A complete plugin, with all possible content, is created as follows:
 ```text
 ─ zsh-containers-plugin
   ├─ .github/                # unless no-github-dir OR
-  │  └─ workflows/           #   no-shell-check AND no-shell-spec
+  │  └─ workflows/           #   no-shell-check AND no-shell-check AND no-shell-spec
   │     └─ shell.yml
   ├─ bin/                    # when   add-bin-dir
   │  └─ .gitkeep
@@ -125,7 +126,8 @@ A complete plugin, with all possible content, is created as follows:
   │  └─ containers_example
   ├─ .git                    # unless no-git-init
   ├─ .gitignore              # unless no-git-init
-  ├─ Makefile                # unless no-shell-check AND no-shell-spec
+  ├─ Makefile                # unless no-shell-check AND no-shell-check AND no-shell-spec
+  ├─ mkdoc.zsh               # unless no-shell-doc
   ├─ README.md
   ├─ containers.bash         # when   add-bash-wrapper
   └─ containers.plugin.zsh  
