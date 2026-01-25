@@ -23,7 +23,7 @@
 #
 # ### Public Variables
 #
-# * **{ plugin_var }}_EXAMPLE**: if set it does something magical.
+# * **{{ plugin_var }}_EXAMPLE**: if set it does something magical.
 #
 
 ############################################################################
@@ -44,8 +44,7 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 #
 # @description
 #
-# This function does the initialization of variables in the global variable
-# `{{ plugin_var }}`. It also adds to `path` and `fpath` as necessary.
+# TBD.
 #
 # @noargs
 #
@@ -54,19 +53,15 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
     builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
     # Removing path/fpath entries.
-    # @zplugin_add_to_path ${PLUGIN[_NAME]} <PATH>
-    # @zplugin_add_to_fpath ${PLUGIN[_NAME]} <PATH>
+    # @zplugin_add_to_path "${PLUGIN[_NAME]}" <PATH>
+    # @zplugin_add_to_fpath "${PLUGIN[_NAME]}" <PATH>
 
     # Export any additional environment variables here.
-    #  @zplugin_save_global {{ plugin_name }} <VAR_NAME>
+    # @zplugin_save_global "${PLUGIN[_NAME]}" {{ plugin_var }}_EXAMPLE
 
     # Define any aliases here, or in their own section below.
     # @zplugin_define_alias "${PLUGIN[_NAME]}" <NAME> <EXPANSION>
-
-    # This should be the LAST step.
-    @zplugin_register "${PLUGIN[_NAME]}" "${PLUGIN[_PATH]}"
 }
-@zplugin_remember_fn {{ plugin_name }}_plugin_init
 
 #
 # @description
@@ -76,29 +71,18 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 # @noargs
 #
 {{ plugin_name }}_plugin_unload() {
-    # See https://wiki.zshell.dev/community/zsh_plugin_standard#unload-function
     builtin emulate -L zsh
 
-    # This should be the FIRST step.
-    @zplugin_unregister "${PLUGIN[_NAME]}"
-
-    # Removing path/fpath entries.
-    # @zplugin_remove_from_path ${PLUGIN[_NAME]} <PATH>
-    # @zplugin_remove_from_fpath ${PLUGIN[_NAME]} <PATH>
-
     # Reset global environment variables.
-    #  @zplugin_restore_global ${PLUGIN[_NAME]} <VAR_NAME>
+    #  @zplugin_restore_global "${PLUGIN[_NAME]}" {{ plugin_var }}_EXAMPLE
 
-    # This should be the LAST step.
-    unfunction {{ plugin_name }}_plugin_unload
+    unset PLUGIN
 }
 
 ############################################################################
 # @section Public
 # @description Public functions, aliases, and varibles.
 #
-
-# Initialize ${{{ plugin_var }}_EXAMPLE}
 
 {% if not include_functions_dir -%}
 #
@@ -118,12 +102,3 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 # Alias my_example ...
 @zplugin_define_alias "${PLUGIN[_NAME]}" my_example '{{ plugin_name }}_example'
 {%- endif %}
-
-############################################################################
-# @section Initialization
-# @description Final plugin initialization.
-#
-
-{{ plugin_name }}_plugin_init
-
-true
