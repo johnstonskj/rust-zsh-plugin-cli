@@ -16,7 +16,7 @@
 #
 # ### State Variables
 #
-# * **PLUGIN**: Plugin-defined global associative array with the following keys:
+# * **{{ plugin_var }}**: Plugin-defined global associative array with the following keys:
 #   * **_NAME**: The name of this plugin.
 #   * **_PATH**: The complete file path to the plugin's file.
 #   * **_CONTEXT**: The plugin's state context.
@@ -31,10 +31,9 @@
 # @description Standard path and variable setup.
 #
 
-typeset -A PLUGIN
-PLUGIN[_PATH]="$(@zplugins_normalize_zero "$0")"
-PLUGIN[_NAME]="${${PLUGIN[_PATH]:t}%%.*}"
-PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
+typeset -A {{ plugin_var }}
+{{ plugin_var }}[_PATH]="$(@zplugins_normalize_zero "$0")"
+{{ plugin_var }}[_CONTEXT]="$(@zplugins_plugin_context {{ plugin_name }})"
 
 ############################################################################
 # @section Lifecycle
@@ -50,17 +49,16 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 #
 {{ plugin_name }}_plugin_init() {
     builtin emulate -L zsh
-    builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
     # Removing path/fpath entries.
-    # @zplugin_add_to_path "${PLUGIN[_NAME]}" <PATH>
-    # @zplugin_add_to_fpath "${PLUGIN[_NAME]}" <PATH>
+    # @zplugins_add_to_path {{ plugin_name }} <PATH>
+    # @zplugins_add_to_fpath {{ plugin_name }} <PATH>
 
     # Export any additional environment variables here.
-    # @zplugin_save_global "${PLUGIN[_NAME]}" {{ plugin_var }}_EXAMPLE
+    # @zplugins_save_global {{ plugin_name }} {{ plugin_var }}_EXAMPLE
 
     # Define any aliases here, or in their own section below.
-    # @zplugin_define_alias "${PLUGIN[_NAME]}" <NAME> <EXPANSION>
+    # @zplugins_define_alias {{ plugin_name }} <NAME> <EXPANSION>
 }
 
 #
@@ -74,9 +72,9 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
     builtin emulate -L zsh
 
     # Reset global environment variables.
-    #  @zplugin_restore_global "${PLUGIN[_NAME]}" {{ plugin_var }}_EXAMPLE
+    #  @zplugins_restore_global {{ plugin_name }} {{ plugin_var }}_EXAMPLE
 
-    unset PLUGIN
+    unset {{ plugin_var }}
 }
 
 ############################################################################
@@ -95,10 +93,10 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 
     printf "An example function in {{plugin_name}}, var: {{ _shv_start }}{{ plugin_var }}_EXAMPLE{{ _shv_end }}"
 }
-@zplugin_remember_fn "${PLUGIN[_NAME]}" {{ plugin_name }}_example
+@zplugins_remember_fn {{ plugin_name }} {{ plugin_name }}_example
 {%- endif %}
 
 {% if include_aliases -%}
 # Alias my_example ...
-@zplugin_define_alias "${PLUGIN[_NAME]}" my_example '{{ plugin_name }}_example'
+@zplugins_define_alias {{ plugin_name }} my_example '{{ plugin_name }}_example'
 {%- endif %}

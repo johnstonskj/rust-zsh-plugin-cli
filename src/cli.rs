@@ -142,11 +142,11 @@ pub(crate) struct InitCommand {
     /// Use the `zplugins` plugin for support functions, shortening plugin size.
     /// 
     /// This will require users of the plugin to have the `zplugins` configured 
-    /// first as it uses`@zplugin_normalize_zero` and `@zplugin_declare_global`
+    /// first as it uses`@zplugins_normalize_zero` and `@zplugins_declare_global`
     /// to setup the plugin environment. It replaces `.<plugin_name>_remember_fn`
-    /// with `@zplugin_remember_fn` and `.<plugin_name>_define_alias` with
-    /// `@zplugin_define_alias`. Finally, `@zplugin_register` and 
-    /// `@zplugin_unregister`.
+    /// with `@zplugins_remember_fn` and `.<plugin_name>_define_alias` with
+    /// `@zplugins_define_alias`. Finally, `@zplugins_register` and 
+    /// `@zplugins_unregister`.
     #[arg(long, short = 'z')]
     use_zplugins: bool,
 
