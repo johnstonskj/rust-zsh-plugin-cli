@@ -1,6 +1,9 @@
 # -*- mode: makefile-gmake -*-
 
-SOURCES={{ plugin_name }}.plugin.zsh{% if add_bash_wrapper %} {{ plugin_name }}.bash{% endif %}{% if include_functions_dir %} functions/*{% endif %}
+PLUGIN_FILE={{ plugin_name }}.plugin.zsh
+FUNCTIONS=$(wildcard functions/*)
+MODULES=$(wildcard modules/*.zsh)
+SOURCES=$(PLUGIN_FILE){% if add_bash_wrapper %} {{ plugin_name }}.bash{% endif %} $(MODULES){% if include_functions_dir %} $(FUNCTIONS){% endif %}
 {% if include_shell_spec %}TEST_SOURCES=spec/{{ plugin_name }}_spec.sh spec/spec_helper.sh{% endif -%}
 
 all: check test doc
@@ -25,7 +28,7 @@ coverage: $(SOURCES) $(TEST_SOURCES)
 {% if include_shell_doc -%}
 DOC_CMD=./mkdoc.zsh
 DOC_DIR=doc
-DOC_SOURCE={{ plugin_name }}.plugin.zsh
+DOC_SOURCES=$(PLUGIN_FILE) $(MODULES)
 
 $(DOC_DIR):
 	mkdir -p $(DOC_DIR)

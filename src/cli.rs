@@ -139,16 +139,14 @@ pub(crate) struct InitCommand {
     #[arg(long, short = 'u', env = "USER")]
     github_user: String,
 
-    /// Use the `zplugins` plugin for support functions, shortening plugin size.
-    /// 
-    /// This will require users of the plugin to have the `zplugins` configured 
-    /// first as it uses`@zplugins_normalize_zero` and `@zplugins_declare_global`
-    /// to setup the plugin environment. It replaces `.<plugin_name>_remember_fn`
-    /// with `@zplugins_remember_fn` and `.<plugin_name>_define_alias` with
-    /// `@zplugins_define_alias`. Finally, `@zplugins_register` and 
-    /// `@zplugins_unregister`.
-    #[arg(long, short = 'z')]
-    use_zplugins: bool,
+    /// Do not use the `zplugins` plugin for support functions, shortening plugin size.
+    ///
+    /// This will require users of the plugin to have the `zplugins` configured
+    /// with `@zplugin_remember_fn` and `.<plugin_name>_define_alias` with
+    /// `@zplugin_define_alias`. Finally, `@zplugin_register` and
+    /// `@zplugin_unregister`.
+    #[arg(long, short = 'Z')]
+    use_plain_plugins: bool,
 
     /// Short description of the plugin.
     ///
@@ -293,8 +291,8 @@ impl InitCommand {
     pub(crate) fn no_shell_spec(&self) -> bool {
         self.no_shell_spec
     }
-    pub(crate) fn use_zplugins(&self) -> bool {
-        self.use_zplugins
+    pub(crate) fn use_plain_plugins(&self) -> bool {
+        self.use_plain_plugins
     }
     pub(crate) fn description(&self) -> Option<&str> {
         self.description.as_deref()

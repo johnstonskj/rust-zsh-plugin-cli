@@ -1,4 +1,4 @@
-# -*- mode: sh; eval: (sh-set-shell "zsh") -*-
+# shellcheck shell=bash # -*- mode: sh; eval: (sh-set-shell "zsh") -*-
 
 builtin emulate -L zsh
 
