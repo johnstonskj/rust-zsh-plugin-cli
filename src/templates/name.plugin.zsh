@@ -46,7 +46,7 @@
 0="${${(M)0:#/*}:-$PWD/$0}"
 
 # See https://wiki.zshell.dev/community/zsh_plugin_standard#standard-plugins-hash
-declare -gA {{ plugin_var }}
+typeset -gA {{ plugin_var }}
 {{ plugin_var }}[_PLUGIN_DIR]="${0:h}"
 {%- if include_aliases %}
 {{ plugin_var }}[_ALIASES]=""
@@ -118,7 +118,6 @@ declare -gA {{ plugin_var }}
 #
 {{ plugin_name }}_plugin_init() {
     builtin emulate -L zsh
-    builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
     {% if include_functions_dir -%}
     # See https://wiki.zshell.dev/community/zsh_plugin_standard#functions-directory
