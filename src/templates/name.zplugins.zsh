@@ -16,35 +16,34 @@
 #
 # ### State Variables
 #
-# * **PLUGIN**: Plugin-defined global associative array with the following keys:
-#   * **_NAME**: The name of this plugin.
-#   * **_PATH**: The complete file path to the plugin's file.
-#   * **_CONTEXT**: The plugin's state context.
+# * **{{ plugin_var }}_PATH**: The absolute path to the plugin's file.
 #
 # ### Public Variables
 #
 # * **{{ plugin_var }}_EXAMPLE**: if set it does something magical.
 #
 
-############################################################################
+###################################################################################################
 # @section Setup
 # @description Standard path and variable setup.
 #
 
-typeset -A PLUGIN
-PLUGIN[_PATH]="$(@zplugins_normalize_zero "$0")"
-PLUGIN[_NAME]="${${PLUGIN[_PATH]:t}%%.*}"
-PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
+{{ plugin_var }}_PLUGIN_PATH="$(@zplugins_normalize_zero "$0")"
 
-############################################################################
+###################################################################################################
 # @section Lifecycle
 # @description Plugin lifecycle functions.
 #
 
+# Declare any dependencies here, it needs to be done BEFORE the plugin manager calls the plugin
+# _init function. In this case, you now have access to logging functions.
+@zplugins_declare_plugin_dependencies {{ plugin_name }} shlog
+
 #
 # @description
 #
-# TBD.
+# Called when the plugin is loaded, allows for additional actions beyond those performed by
+# the plugin manager.
 #
 # @noargs
 #
@@ -52,15 +51,16 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
     builtin emulate -L zsh
     builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
-    # Removing path/fpath entries.
-    # @zplugin_add_to_path "${PLUGIN[_NAME]}" <PATH>
-    # @zplugin_add_to_fpath "${PLUGIN[_NAME]}" <PATH>
+    # Removing any non-standard path/fpath entries.
+    # @zplugin_add_to_path {{ plugin_name }} <PATH>
+    # @zplugin_add_to_fpath {{ plugin_name }} <PATH>
 
-    # Export any additional environment variables here.
-    # @zplugin_save_global "${PLUGIN[_NAME]}" {{ plugin_var }}_EXAMPLE
+    # Save, and set, any public environment variables here.
+    @zplugins_envvar_save {{ plugin_name }} {{ plugin_var }}_EXAMPLE
+    typeset -g {{ plugin_var }}_EXAMPLE={{ _shv_start }}{{ plugin_var }}_EXAMPLE:-1{{ _shv_end }}
 
     # Define any aliases here, or in their own section below.
-    # @zplugin_define_alias "${PLUGIN[_NAME]}" <NAME> <EXPANSION>
+    # @zplugin_define_alias {{ plugin_name }} <NAME> '<EXPANSION>'
 }
 
 #
@@ -73,13 +73,13 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 {{ plugin_name }}_plugin_unload() {
     builtin emulate -L zsh
 
-    # Reset global environment variables.
-    #  @zplugin_restore_global "${PLUGIN[_NAME]}" {{ plugin_var }}_EXAMPLE
+    # Reset any public environment variables.
+    @zplugins_envvar_restore {{ plugin_name }} {{ plugin_var }}_EXAMPLE
 
-    unset PLUGIN
+    unset {{ plugin_var }}_PLUGIN_PATH
 }
 
-############################################################################
+###################################################################################################
 # @section Public
 # @description Public functions, aliases, and varibles.
 #
@@ -95,10 +95,10 @@ PLUGIN[_CONTEXT]="$(@zplugins_plugin_context ${PLUGIN[_NAME]})"
 
     printf "An example function in {{plugin_name}}, var: {{ _shv_start }}{{ plugin_var }}_EXAMPLE{{ _shv_end }}"
 }
-@zplugin_remember_fn "${PLUGIN[_NAME]}" {{ plugin_name }}_example
+@zplugin_remember_fn {{ plugin_name }} {{ plugin_name }}_example
 {%- endif %}
 
 {% if include_aliases -%}
-# Alias my_example ...
-@zplugin_define_alias "${PLUGIN[_NAME]}" my_example '{{ plugin_name }}_example'
+# Define any aliases here, or in the plugin _init function above.
+@zplugin_define_alias {{ plugin_name }} my_example '{{ plugin_name }}_example'
 {%- endif %}

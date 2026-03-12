@@ -48,7 +48,7 @@ const O_INCLUDE_README: &str = "include_readme";
 const O_INCLUDE_SHELL_CHECK: &str = "include_shell_check";
 const O_INCLUDE_SHELL_DOC: &str = "include_shell_doc";
 const O_INCLUDE_SHELL_SPEC: &str = "include_shell_spec";
-const O_USE_ZPLUGINS: &str = "use_zplugins";
+const O_USE_PLAIN_PLUGINS: &str = "use_plain_plugins";
 
 const P_BIN_DIR: &str = "bin";
 const P_DOC_DIR: &str = "doc";
@@ -139,7 +139,10 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    if ctx_get_bool(&ctx, O_INCLUDE_SHELL_CHECK)? || ctx_get_bool(&ctx, O_INCLUDE_SHELL_DOC)? || ctx_get_bool(&ctx, O_INCLUDE_SHELL_SPEC)? {
+    if ctx_get_bool(&ctx, O_INCLUDE_SHELL_CHECK)?
+        || ctx_get_bool(&ctx, O_INCLUDE_SHELL_DOC)?
+        || ctx_get_bool(&ctx, O_INCLUDE_SHELL_SPEC)?
+    {
         render_template(
             &mut tera,
             &ctx,
@@ -169,10 +172,10 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
         )?;
     }
 
-    let template = if ctx_get_bool(&ctx, O_USE_ZPLUGINS)? {
-        T_PLUGIN_SOURCE_ZPLUGINS
-    } else {
+    let template = if ctx_get_bool(&ctx, O_USE_PLAIN_PLUGINS)? {
         T_PLUGIN_SOURCE
+    } else {
+        T_PLUGIN_SOURCE_ZPLUGINS
     };
     render_template(
         &mut tera,
@@ -185,13 +188,7 @@ pub(crate) fn init_new_plugin(ctx: Context, force: bool) -> Result<ExitCode, Err
     if ctx_get_bool(&ctx, O_INCLUDE_SHELL_DOC)? {
         let docdir = target_root.join(P_DOC_DIR);
         make_directory(&docdir, force)?;
-        render_template(
-            &mut tera,
-            &ctx,
-            T_MKDOC,
-            &target_root.join(P_MKDOC),
-            force,
-        )?;
+        render_template(&mut tera, &ctx, T_MKDOC, &target_root.join(P_MKDOC), force)?;
     }
 
     report_progress!(done);
@@ -284,7 +281,7 @@ impl From<InitCommand> for Context {
         ctx.insert(O_INCLUDE_SHELL_CHECK, &!cmd.no_shell_check());
         ctx.insert(O_INCLUDE_SHELL_DOC, &!cmd.no_shell_doc());
         ctx.insert(O_INCLUDE_SHELL_SPEC, &!cmd.no_shell_spec());
-        ctx.insert(O_USE_ZPLUGINS, &cmd.use_zplugins());
+        ctx.insert(O_USE_PLAIN_PLUGINS, &cmd.use_plain_plugins());
         if let Some(description) = cmd.description() {
             ctx.insert(V_SHORT_DESCRIPTION, description);
         } else {
