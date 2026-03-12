@@ -118,7 +118,6 @@ declare -gA {{ plugin_var }}
 #
 {{ plugin_name }}_plugin_init() {
     builtin emulate -L zsh
-    builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
     {% if include_functions_dir -%}
     # See https://wiki.zshell.dev/community/zsh_plugin_standard#functions-directory

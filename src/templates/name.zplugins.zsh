@@ -14,19 +14,21 @@
 #
 # Long description TBD.
 #
-# ### State Variables
-#
-# * **{{ plugin_var }}_PATH**: The absolute path to the plugin's file.
-#
 # ### Public Variables
 #
 # * **{{ plugin_var }}_EXAMPLE**: if set it does something magical.
+#
+# ### State Variables
+#
+# * **{{ plugin_var }}_PLUGIN_PATH**: The complete file path to the plugin's file.
 #
 
 ###################################################################################################
 # @section Setup
 # @description Standard path and variable setup.
 #
+
+typeset -g { plugin_var }}_EXAMPLE
 
 {{ plugin_var }}_PLUGIN_PATH="$(@zplugins_normalize_zero "$0")"
 
@@ -49,18 +51,17 @@
 #
 {{ plugin_name }}_plugin_init() {
     builtin emulate -L zsh
-    builtin setopt extended_glob warn_create_global typeset_silent no_short_loops rc_quotes no_auto_pushd
 
-    # Removing any non-standard path/fpath entries.
-    # @zplugin_add_to_path {{ plugin_name }} <PATH>
-    # @zplugin_add_to_fpath {{ plugin_name }} <PATH>
+    # Add any additional path/fpath entries.
+    # @zplugins_add_to_path {{ plugin_name }} <PATH>
+    # @zplugins_add_to_fpath {{ plugin_name }} <PATH>
 
     # Save, and set, any public environment variables here.
     @zplugins_envvar_save {{ plugin_name }} {{ plugin_var }}_EXAMPLE
     typeset -g {{ plugin_var }}_EXAMPLE={{ _shv_start }}{{ plugin_var }}_EXAMPLE:-1{{ _shv_end }}
 
-    # Define any aliases here, or in their own section below.
-    # @zplugin_define_alias {{ plugin_name }} <NAME> '<EXPANSION>'
+    # Define any aliases here.
+    # @zplugins_define_alias {{ plugin_name }} <NAME> '<EXPANSION>''
 }
 
 #
@@ -95,10 +96,5 @@
 
     printf "An example function in {{plugin_name}}, var: {{ _shv_start }}{{ plugin_var }}_EXAMPLE{{ _shv_end }}"
 }
-@zplugin_remember_fn {{ plugin_name }} {{ plugin_name }}_example
-{%- endif %}
-
-{% if include_aliases -%}
-# Define any aliases here, or in the plugin _init function above.
-@zplugin_define_alias {{ plugin_name }} my_example '{{ plugin_name }}_example'
+@zplugins_remember_fn {{ plugin_name }} {{ plugin_name }}_example
 {%- endif %}

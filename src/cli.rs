@@ -139,14 +139,8 @@ pub(crate) struct InitCommand {
     #[arg(long, short = 'u', env = "USER")]
     github_user: String,
 
-    /// Do not use the `zplugins` plugin for support functions, shortening plugin size.
+    /// Do not use the `zplugins` plugin manager for support functions.
     ///
-    /// This will require users of the plugin to have the `zplugins` configured
-    /// first as it uses`@zplugin_normalize_zero` and `@zplugin_declare_global`
-    /// to setup the plugin environment. It replaces `.<plugin_name>_remember_fn`
-    /// with `@zplugin_remember_fn` and `.<plugin_name>_define_alias` with
-    /// `@zplugin_define_alias`. Finally, `@zplugin_register` and
-    /// `@zplugin_unregister`.
     #[arg(long, short = 'Z')]
     use_plain_plugins: bool,
 
