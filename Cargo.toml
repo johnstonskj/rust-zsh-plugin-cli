@@ -1,7 +1,7 @@
 [package]
 authors = ["Simon Johnston <johnstonskj@gmail.com>"]
 name = "zsh-plugin-cli"
-version = "0.2.0"
+version = "0.2.1"
 description = "A command-line tool to generate new Zsh plugins."
 documentation = "https://docs.rs/zsh-plugin-cli/"
 repository = "https://github.com/johnstonskj/rust-zsh-plugin-cli.git"
