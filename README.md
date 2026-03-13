@@ -11,8 +11,8 @@ A command-line tool to generate new Zsh plugins.
 
 This tool scaffolds Zsh plugins with best practices built-in, including function
 tracking for clean unloading, optional alias support, autoloaded functions, and
-CI/CD workflows for shellcheck and shellspec. Choose from minimal, simple, or
-complete templates to match your plugin's complexity.
+CI/CD workflows for shellcheck and shellspec. Choose from _minimal_, _simple_, or
+_complete_ templates to match your plugin's complexity.
 
 ## Install
 
@@ -39,54 +39,146 @@ Options:
 
 ## Command `init`
 
-Initialize a new Zsh plugin structure in the directory `zsh-NAME-plugin`.
+```bash
+❯ zsh-plugin init --help                                                                              
+Initialize a new Zsh plugin structure
+
 The resulting plugin contains the following content.
 
-1. A file `NAME.plugin.zsh` which consists of the main plugin logic
-   including support for autoloaded functions in the `functions`
-   directory, or (if `no-functions-dir` is set) functions defined inline.
-   Function `_NAME_remember_fn` keeps track of all plugin-defined 
-   functions so they can be unset during the function 
-   `NAME_plugin_unload`. Similarly, a function `_NAME_define_alias`
-   is included, unless `no-aliases` is set, that both defines the alias
-   and keeps track of all plugin-defined aliases so they can be unset
-   during the function `NAME_plugin_unload`. A function `NAME_plugin_init`
-   is included, unless both `no-functions-dir` and `no-bin-dir` are set,
-   which sets up the corresponding `FPATH` and `PATH` variables. Finally,
-   the function `NAME_plugin_unload` is defined and contains the logic
-   to unfunction all the remembered functions, unalias all the remembered
-   aliases, remove entries from `FPATH` and `PATH` and unset the global
-   associative array variable.
+...
+
+Usage: zsh-plugin init [OPTIONS] --github-user <GITHUB_USER> <NAME>
+
+Arguments:
+  <NAME>
+          The name of the new plugin.
+          
+          Plugin names are restricted to a "safe" subset corresponding to the following regular expression `\[a-zA-Z\]\[a-zA-Z0-9_-\]``.
+
+Options:
+  -f, --force
+          Force over-writing of existing files.
+          
+          If not set, the tool will fail when target directories or files exist.
+
+  -v, --verbose...
+          Increase logging verbosity.
+
+  -q, --quiet...
+          Decrease logging verbosity.
+
+  -t, --template <TEMPLATE>
+          A pre-configured template to use.
+
+          Possible values:
+          - minimal:  Minimal plugin structure
+          - simple:   Simple in-line function plugin structure
+          - complete: Complete plugin structure with all optional components included
+
+  -a, --add-bin-dir
+          Add a 'bin' sub-directory for plugin-specific binaries/scripts.
+
+  -w, --add-bash-wrapper
+          Add a Bash wrapper file to call the plugin from Bash scripts.
+
+  -A, --no-aliases
+          Do not include support for tracking aliases defined by the plugin.
+
+  -C, --no-shell-check
+          Do not include support for linting using shellcheck.
+          
+          Add linting steps to the Makefile and shell.yml (Github Action) files.
+
+  -D, --no-shell-doc
+          Do not include support for documentation generation with shdoc.
+          
+          Add documentation steps to the Makefile.
+
+  -F, --no-functions-dir
+          Do not include a 'functions' sub-directory and example file.
+
+  -G, --no-git-init
+          Do not initialize Git in the generated plugin.
+          
+          By default the created plugin directory is also initialized as a new Git repository. This option also stops creation a generic .gitignore file.
+
+  -H, --no-github-dir
+          Do not include a '.github' sub-directory.
+          
+          By default the created plugin includes a .github/worflows directory with a file shell.yml that defines a Github Actions workflow. Note that if both no-shell-check and no-shell_test options are set the workflow file is not created as it would effectively be a no-op.
+
+  -R, --no-readme
+          Do not include a README file.
+
+  -S, --no-shell-spec
+          Do not include support for testing using shellspec.
+          
+          Add testing steps to the Makefile and shell.yml (Github Action) files.
+
+  -u, --github-user <GITHUB_USER>
+          Set the name of the Github user for inclusion in README.md
+          
+          [env: USER=simon]
+
+  -Z, --use-plain-plugins
+          Do not use the `zplugins` plugin manager for support functions.
+
+  -d, --description <DESCRIPTION>
+          Short description of the plugin.
+          
+          This description is added to the plugin source and README.md files.
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+
+### Results
+
+Initialize a new Zsh plugin structure in the directory `zsh-NAME-plugin`.
+he resulting plugin contains the following content.
+
+1. A file `NAME.plugin.zsh` which consists of the main plugin
+   lifecycle functions.
+   1. A function `NAME_plugin_init` is included with comments to show
+      how to save environment variables, add aliases, and add to either
+      `path` or `fpath`.
+   2. A function `NAME_plugin_unload` is included with comments to
+      demonstrate custom clean-up actions.
+   3. An example global variable `NAME_EXAMPLE` set during _source_ time.
+   4. A call during _source_ time to set any dependencies the plugin
+      wishes to declare.
 
 2. If the option `add-bash-wrapper` is defined, a file `NAME.bash`
    is included which provides an entry point for Bash users to load the
    plugin.
 
 3. A directory `.github/workflows` and a Github Actions script named
-   `shell.yml` to automate shellcheck and shellspec. Generation can be
-   skipped if the `no-github-dir` option is checked or both the options
-   `no-shell-check` and `no-shell-spec` are set as the workflow has
+   `shell.yml` to automate shellcheck and shellspec. Generation will be
+   skipped if the `no-github-dir` option is checked **or** both the options
+   `no-shell-check` and `no-shell-spec` are set as the workflow then has
    nothing to do.
 
 4. A directory `functions` with an example autoloaded function
-   named `NAME_example`. Generation can be skipped if the
+   named `NAME_example`. Generation will be skipped if the
    `no-functions-dir` option is set.
 
-5. If the option `add-bin-dir is set an empty `bin` directory for
+5. If the option `add-bin-dir` is set an empty `bin` directory for
    plugin specific binaries is created.
 
-6. A file `.gitignore`. Generation can be skipped if both the options
-   `no-shell-check` and `no-shell-spec`.
+6. A file `.gitignore`. Generation will be skipped if both the options
+   `no-shell-check` and `no-shell-spec`are set.
 
-7. A directory `doc` and shell script `mkdoc.zsh`. Generation can be
-   skipped if the `no-shell-doc` option is set.
+7. A directory `doc`. Generation will be skipped if the `no-shell-doc`
+   option is set.
 
-8. A file `Makefile` for GNU Make. Generation can be skipped if
+8. A file `Makefile` for GNU Make. Generation will be skipped if
    the options `no-shell-check`, `no-shell-doc`, and `no-shell-spec`
    are all true.
 
-9. A file `README.md` containing only a basic skeleton. Generation can be
+9. A file `README.md` containing only a basic skeleton. Generation will be
    skipped if the `no-readme` is set.
+
+### Templates
 
 Rather than setting all options manually, three templates are provided with
 pre-defined selection of settings. These are described in the table below.
@@ -101,7 +193,7 @@ pre-defined selection of settings. These are described in the table below.
 | `no-github-dir`     | true    | true   | false    |
 | `no-readme`         | true    | false  | false    |
 | `no-shell-check`    | true    | false  | false    |
-| `no-shell-doc`    | true    | false  | false    |
+| `no-shell-doc`      | true    | false  | false    |
 | `no-shell-spec`     | true    | false  | false    |
 
 ### Example

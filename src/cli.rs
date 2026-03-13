@@ -24,48 +24,50 @@ pub(crate) enum Commands {
     ///
     /// The resulting plugin contains the following content.
     ///
-    /// 1. A file `NAME.plugin.zsh` which consists of the main plugin logic
-    ///    including support for autoloaded functions in the `functions`
-    ///    directory, or (if `no-functions-dir` is set) functions defined inline.
-    ///    Function `_NAME_remember_fn` keeps track of all plugin-defined
-    ///    functions so they can be unset during the function
-    ///    `NAME_plugin_unload`. Similarly, a function `_NAME_define_alias`
-    ///    is included, unless `no-aliases` is set, that both defines the alias
-    ///    and keeps track of all plugin-defined aliases so they can be unset
-    ///    during the function `NAME_plugin_unload`. A function `NAME_plugin_init`
-    ///    is included, unless both `no-functions-dir` and `no-bin-dir` are set,
-    ///    which sets up the corresponding `FPATH` and `PATH` variables. Finally,
-    ///    the function `NAME_plugin_unload` is defined and contains the logic
-    ///    to unfunction all the remembered functions, unalias all the remembered
-    ///    aliases, remove entries from `FPATH` and `PATH` and unset the global
-    ///    associative array variable.
+    /// 1. A file `NAME.plugin.zsh` which consists of the main plugin
+    ///    lifecycle functions.
     ///
-    /// 2. If the option `add-bash-wrapper` is set, a file `NAME.bash`
+    /// 2. A function `NAME_plugin_init` is included with comments to show
+    ///    how to save environment variables, add aliases, and add to either
+    ///    `path` or `fpath`.
+    ///
+    /// 3. A function `NAME_plugin_unload` is included with comments to
+    ///    demonstrate custom clean-up actions.
+    ///
+    /// 4. An example global variable `NAME_EXAMPLE` set during _source_ time.
+    ///
+    /// 5. A call during _source_ time to set any dependencies the plugin
+    ///    wishes to declare.
+    ///
+    /// 6. If the option `add-bash-wrapper` is defined, a file `NAME.bash`
     ///    is included which provides an entry point for Bash users to load the
     ///    plugin.
     ///
-    /// 3. A directory `.github/workflows` and a Github Actions script named
-    ///    `shell.yml` to automate shellcheck and shellspec. Generation can be
-    ///    skipped if the `no-github-dir` option is checked or both the options
-    ///    `no-shell-check` and `no-shell-spec` are set as the workflow has
+    /// 7. A directory `.github/workflows` and a Github Actions script named
+    ///    `shell.yml` to automate shellcheck and shellspec. Generation will be
+    ///    skipped if the `no-github-dir` option is checked **or** both the options
+    ///    `no-shell-check` and `no-shell-spec` are set as the workflow then has
     ///    nothing to do.
     ///
-    /// 4. A directory `functions` with an example autoloaded function
-    ///    named `NAME_example`. Generation can be skipped if the
+    /// 8. A directory `functions` with an example autoloaded function
+    ///    named `NAME_example`. Generation will be skipped if the
     ///    `no-functions-dir` option is set.
     ///
-    /// 5. If the option `add-bin-dir is set, an empty `bin` directory for
+    /// 9. If the option `add-bin-dir` is set an empty `bin` directory for
     ///    plugin specific binaries is created.
     ///
-    /// 6. A file `.gitignore`. Generation can be skipped if both the options
-    ///    `no-shell-check` and `no-shell-spec`.
+    /// 10. A file `.gitignore`. Generation will be skipped if both the options
+    ///     `no-shell-check` and `no-shell-spec`are set.
     ///
-    /// 7. A file `Makefile` for GNU Make. Generation can be skipped if both
-    ///    the options `no-shell-check` and `no-shell-spec`.
+    /// 11. A directory `doc`. Generation will be skipped if the `no-shell-doc`
+    ///     option is set.
     ///
-    /// 8. A file `README.md` containing only a basic skeleton. Generation can
-    ///    be skipped if the `no-readme` option is set.
+    /// 12. A file `Makefile` for GNU Make. Generation will be skipped if
+    ///     the options `no-shell-check`, `no-shell-doc`, and `no-shell-spec`
+    ///     are all true.
     ///
+    /// 13. A file `README.md` containing only a basic skeleton. Generation will be
+    ///     skipped if the `no-readme` is set.
     Init(InitCommand),
 }
 
@@ -81,72 +83,93 @@ pub(crate) struct InitCommand {
     template: Option<Template>,
 
     /// Add a 'bin' sub-directory for plugin-specific binaries/scripts.
+    ///
+    /// The zplugins framework automatically adds this directory to
+    /// 'PATH' if present.
     #[arg(long, short = 'a', action, conflicts_with = "template")]
     add_bin_dir: bool,
 
     /// Add a Bash wrapper file to call the plugin from Bash scripts.
+    ///
     #[arg(long, short = 'w', action, conflicts_with = "template")]
     add_bash_wrapper: bool,
 
-    /// Do not include support for tracking aliases defined by the plugin.
+    /// Do not include generation of alias examples within the plugin.
+    ///
+    /// Examples are usually added to the plugin's main file, these can
+    /// be skipped if you have no intention of using aliases.
     #[arg(long, short = 'A', action, conflicts_with = "template")]
     no_aliases: bool,
 
-    /// Do not include support for linting using shellcheck.
+    /// Do not include support for linting using the shellcheck tool.
     ///
-    /// Add linting steps to the Makefile and shell.yml (Github Action) files.
+    /// Add linting rules to the 'Makefile' and 'shell.yml' (Github Action) files.
     #[arg(long, short = 'C', action, conflicts_with = "template")]
     no_shell_check: bool,
 
-    /// Do not include support for documentation generation with shdoc.
+    /// Do not include support for documentation generation with the
+    /// shdoc tool.
     ///
-    /// Add documentation steps to the Makefile.
+    /// Add documentation steps to the 'Makefile'. The plugin file and
+    /// all functions will include basic shelldoc documentation whether
+    /// this flag is set or not.
     #[arg(long, short = 'D', action, conflicts_with = "template")]
     no_shell_doc: bool,
 
     /// Do not include a 'functions' sub-directory and example file.
+    ///
+    /// By default a directory `functions` is created and a file named
+    /// 'NAME_example' is included with an example function autoloaded
+    /// by zplugins.
+    /// The zplugins framework automatically adds this directory to
+    /// 'FPATH' if present.
     #[arg(long, short = 'F', action, conflicts_with = "template")]
     no_functions_dir: bool,
 
     /// Do not initialize Git in the generated plugin.
     ///
     /// By default the created plugin directory is also initialized as a new
-    /// Git repository. This option also stops creation a generic .gitignore
+    /// Git repository. This option also stops creation of any '.gitignore'
     /// file.
     #[arg(long, short = 'G', action, conflicts_with = "template")]
     no_git_init: bool,
 
     /// Do not include a '.github' sub-directory.
     ///
-    /// By default the created plugin includes a .github/worflows directory
-    /// with a file shell.yml that defines a Github Actions workflow. Note
-    /// that if both no-shell-check and no-shell_test options are set the
+    /// By default the created plugin includes a '.github/worflows' directory
+    /// with a file 'shell.yml' that defines a Github Actions workflow. Note
+    /// that if both 'no-shell-check' and 'no-shell_test' options are set the
     /// workflow file is not created as it would effectively be a no-op.
     #[arg(long, short = 'H', action, conflicts_with = "template")]
     no_github_dir: bool,
 
-    /// Do not include a README file.
+    /// Do not include a README.md file.
     #[arg(long, short = 'R', action, conflicts_with = "template")]
     no_readme: bool,
 
-    /// Do not include support for testing using shellspec.
+    /// Do not include support for testing using the shellspec tool.
     ///
-    /// Add testing steps to the Makefile and shell.yml (Github Action) files.
+    /// Add testing steps to the 'Makefile' and 'shell.yml' (Github Action) files.
     #[arg(long, short = 'S', action, conflicts_with = "template")]
     no_shell_spec: bool,
 
-    /// Set the name of the Github user for inclusion in README.md.
+    /// Set the name of the Github user for inclusion in 'README.md'.
     #[arg(long, short = 'u', env = "USER")]
     github_user: String,
 
     /// Do not use the `zplugins` plugin manager for support functions.
     ///
+    /// The zplugins manager provides a lot of features such as autoloading
+    /// functions, adding certain directories to 'path' and 'fpath' if present
+    /// and tracking global variables and aliases so they are automatically
+    /// cleaned up when a plugin is unloaded. Without this framework the
+    /// generated plugin has a lot of code to emulate some of these features.
     #[arg(long, short = 'Z')]
     use_plain_plugins: bool,
 
     /// Short description of the plugin.
     ///
-    /// This description is added to the plugin source and README.md files.
+    /// This description is added to the plugin source and 'README.md' files.
     #[arg(long, short = 'd')]
     description: Option<String>,
 
@@ -165,6 +188,7 @@ pub(crate) enum Template {
     /// no Git directory, no GitHub workflows, and no support for aliases,
     /// shellcheck or  shellspec.
     Minimal,
+
     /// Simple in-line function plugin structure.
     ///
     /// The generated plugin contains support for aliases, shellcheck and
@@ -172,6 +196,7 @@ pub(crate) enum Template {
     /// It does not include the binary or functions directories, or
     /// GitHub workflows.
     Simple,
+
     /// Complete plugin structure with all optional components included.
     Complete,
 }

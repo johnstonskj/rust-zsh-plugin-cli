@@ -69,8 +69,10 @@ declare {{ plugin_var }}_PLUGIN_PATH="$(@zplugins_normalize_zero "$0")"
     @zplugins_envvar_save {{ plugin_name }} {{ plugin_var }}_EXAMPLE
     {{ plugin_var }}_EXAMPLE={{ _shv_start }}{{ plugin_var }}_EXAMPLE:-1{{ _shv_end }}
 
+    {% if include_aliases -%}
     # Define any aliases here.
-    # @zplugins_define_alias {{ plugin_name }} <NAME> '<EXPANSION>''
+    # @zplugins_define_alias {{ plugin_name }} <NAME> '<EXPANSION>'
+    {%- endif %}
 
     return ${EC_SUCCESS}
 }
