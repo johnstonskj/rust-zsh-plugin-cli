@@ -18,27 +18,36 @@
 #
 # * **{{ plugin_var }}_EXAMPLE**: if set it does something magical.
 #
-# ### State Variables
+
+typeset -gi EC_SUCCESS
+
+###################################################################################################
+# @section Globals
+# @description
+#
+# Import any globals from other plugins (using `typeset -g`) and initialize any plugin globals
+# using either `declare` or `declare -g` for exported values.
+#
+# ### Internal Variables
 #
 # * **{{ plugin_var }}_PLUGIN_PATH**: The complete file path to the plugin's file.
 #
 
-###################################################################################################
-# @section Setup
-# @description Standard path and variable setup.
-#
+declare -g { plugin_var }}_EXAMPLE
 
-typeset -g { plugin_var }}_EXAMPLE
-
-{{ plugin_var }}_PLUGIN_PATH="$(@zplugins_normalize_zero "$0")"
+declare {{ plugin_var }}_PLUGIN_PATH="$(@zplugins_normalize_zero "$0")"
 
 ###################################################################################################
 # @section Lifecycle
-# @description Plugin lifecycle functions.
+# @description
+#
+# Plugin core lifecycle components.
+#
+# 1. Declare any dependencies here, it needs to be done **before** the plugin manager calls the plugin's `_init` function.
+# 2. Declare the function `{{ plugin_name }}_plugin_init` to perform any special initialization, this may not be necessary.
+# 3. Declare the function `{{ plugin_name }}_plugin_unload` to perform any special clean-up, this may not be necessary.
 #
 
-# Declare any dependencies here, it needs to be done BEFORE the plugin manager calls the plugin
-# _init function. In this case, you now have access to logging functions.
 @zplugins_declare_plugin_dependencies {{ plugin_name }} shlog
 
 #
@@ -58,10 +67,12 @@ typeset -g { plugin_var }}_EXAMPLE
 
     # Save, and set, any public environment variables here.
     @zplugins_envvar_save {{ plugin_name }} {{ plugin_var }}_EXAMPLE
-    typeset -g {{ plugin_var }}_EXAMPLE={{ _shv_start }}{{ plugin_var }}_EXAMPLE:-1{{ _shv_end }}
+    {{ plugin_var }}_EXAMPLE={{ _shv_start }}{{ plugin_var }}_EXAMPLE:-1{{ _shv_end }}
 
     # Define any aliases here.
     # @zplugins_define_alias {{ plugin_name }} <NAME> '<EXPANSION>''
+
+    return ${EC_SUCCESS}
 }
 
 #
@@ -77,12 +88,15 @@ typeset -g { plugin_var }}_EXAMPLE
     # Reset any public environment variables.
     @zplugins_envvar_restore {{ plugin_name }} {{ plugin_var }}_EXAMPLE
 
+    # Unset any plugin-specific globals not saved with `@zplugins_envvar_save`.
     unset {{ plugin_var }}_PLUGIN_PATH
+
+    return ${EC_SUCCESS}
 }
 
 ###################################################################################################
 # @section Public
-# @description Public functions, aliases, and varibles.
+# @description Public functions and aliases.
 #
 
 {% if not include_functions_dir -%}
