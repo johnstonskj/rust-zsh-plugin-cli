@@ -4,10 +4,11 @@ A command-line tool to generate new Zsh plugins.
 
 [![Apache-2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![MIT License](https://img.shields.io/badge/license-mit-118811.svg)](https://opensource.org/license/mit)
-[![Rust Workflow](https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/rust.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/rust.yml>)
-[![Security Audit Workflow](https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/security-audit.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/security-audit.yml>)
 [![crates.io](https://img.shields.io/crates/v/zsh-plugin.svg)](https://crates.io/crates/zsh-plugin)
 [![GitHub stars](https://img.shields.io/github/stars/johnstonskj/rust-zsh-plugin-cli.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/stargazers>)
+
+[![Rust Workflow](https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/rust.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/rust.yml>)
+[![Security Audit Workflow](https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/security-audit.yml/badge.svg)](<https://github.com/johnstonskj/rust-zsh-plugin-cli/actions/workflows/security-audit.yml>)
 
 This tool scaffolds Zsh plugins with best practices built-in, including function
 tracking for clean unloading, optional alias support, autoloaded functions, and
