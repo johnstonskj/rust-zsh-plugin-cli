@@ -16,7 +16,7 @@ clap-verbosity-flag = { version = "3.0", default-features = false, features = [
     "tracing",
 ] }
 clap_complete = "4.5"
-tera = "1.20"
+tera = "2.4"
 flat_error = "0.3"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["ansi", "env-filter"] }
